@@ -121,11 +121,18 @@
         }, 1000);
       }
 
-      window.onload = () => { 
-        startClock(); 
-        document.getElementById('datePicker').valueAsDate = new Date(); 
-        fetchData(); 
-      };
+window.onload = () => { 
+  startClock(); 
+  document.getElementById('datePicker').valueAsDate = new Date(); 
+  fetchData(); 
+
+  // NEW: Automatically registers the background service worker script
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js')
+      .then(() => console.log("Service Worker registered successfully!"))
+      .catch((err) => console.error("Service worker registration failed:", err));
+    }
+  };
 
       function handleDateChange() {
         const p = document.getElementById('datePicker');
