@@ -277,15 +277,15 @@ function preFetchNextMonth(currentDateObj) {
           </div>`;
 
         let h = '';
-        h += singleRow('Subhe Sadiq', 'Tahajjud End', r);
-        h += tripleRow('Fajr', 'Morning Prayer', r, r, r);
-        h += singleRow('Sunrise', 'Prohibited', r, true);
-        h += singleRow('Zawaal', 'Prohibited', r, true);
-        h += tripleRow('Zohr', 'Midday Prayer', r, '---', '13:00');
-        h += tripleRow('Assr', 'Afternoon Prayer', r, r, r);
-        h += singleRow('Sunset', 'Prohibited', r, true);
-        h += tripleRow('Maghrib', 'Evening Prayer', r, '---', '---');
-        h += tripleRow('Esha', 'Night Prayer', r, r, r);
+        h += singleRow('Subhe Sadiq', 'Tahajjud End', r[1]);
+        h += tripleRow('Fajr', 'Morning Prayer', r[2], r[3], r[4]);
+        h += singleRow('Sunrise', 'Prohibited', r[5], true);
+        h += singleRow('Zawaal', 'Prohibited', r[6], true);
+        h += tripleRow('Zohr', 'Midday Prayer', r[7], '---', '13:00');
+        h += tripleRow('Assr', 'Afternoon Prayer', r[8], r[9], r[10]);
+        h += singleRow('Sunset', 'Prohibited', r[11], true);
+        h += tripleRow('Maghrib', 'Evening Prayer', r[12], '---', '---');
+        h += tripleRow('Esha', 'Night Prayer', r[13], r[14], r[15]);
 
         h += `
           <div class="prayer-row raised" style="margin-top: 30px; background: #fff; border-left: 6px solid var(--primary); grid-template-columns: 1fr 1fr;">
