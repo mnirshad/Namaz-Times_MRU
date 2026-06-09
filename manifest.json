@@ -2,23 +2,23 @@
   "name": "Namaz-Times Mauritius",
   "short_name": "Namaz MRU",
   "description": "A lightweight, offline-first prayer dashboard for Mauritius.",
-  "start_url": ".",
+  "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#e0fdfb",
   "theme_color": "#1e4d50",
   "orientation": "portrait",
   "icons": [
     {
-      "src": "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/png/prayer-192.png",
+      "src": "https://cdn-icons-png.flaticon.com/512/2614/2614631.png",
       "sizes": "192x192",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     },
     {
-      "src": "https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/png/prayer-512.png",
+      "src": "https://cdn-icons-png.flaticon.com/512/2614/2614631.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
     }
   ]
 }
