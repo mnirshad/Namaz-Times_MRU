@@ -127,9 +127,47 @@
 </div>
 
 <script>
-    // 🔗 PASTE YOUR NEW APPS SCRIPT WEB APP URL HERE
+    // 🔗 Your Apps Script Web App URL
     const API_URL = "https://script.google.com/macros/s/AKfycbxqBm_FQ58OkJSxJj-79jz3ElzOOhHYtZlZX5lJyOBFdZLBbxqDwyFkDmpKdLxJCf7A/exec";
 
+    // 🔄 Automatically fetch and display current database values when page loads
+    window.addEventListener('DOMContentLoaded', fetchCurrentSettings);
+
+    async function fetchCurrentSettings() {
+        const status = document.getElementById('statusMessage');
+        status.style.color = "orange";
+        status.innerText = "Fetching current database values...";
+
+        try {
+            // Appends the secret action flag to your GET request
+            const response = await fetch(`${API_URL}?action=getSettings`);
+            const currentData = await response.json();
+
+            if (currentData.error) {
+                status.style.color = "red";
+                status.innerText = "❌ Could not read database configurations.";
+                return;
+            }
+
+            // Populates the input boxes with the actual spreadsheet numbers/text
+            document.getElementById('moonSighted').value = currentData.moonSighted || "";
+            document.getElementById('hijriMonth').value = currentData.hijriMonth || "";
+            document.getElementById('hijriYear').value = currentData.hijriYear || "";
+
+            status.style.color = "green";
+            status.innerText = "✅ Current settings loaded successfully.";
+            
+            // Clears the success text after 3 seconds so the screen stays clean
+            setTimeout(() => { status.innerText = ""; }, 3000);
+
+        } catch (err) {
+            status.style.color = "red";
+            status.innerText = "❌ Failed to connect to database reader.";
+            console.error(err);
+        }
+    }
+
+    // 💾 Securely send updated inputs back to Google Sheets
     async function updateSystem() {
         const password = document.getElementById('adminPassword').value;
         const moonSighted = document.getElementById('moonSighted').value;
@@ -139,17 +177,17 @@
 
         if (!password) {
             status.style.color = "red";
-            status.innerText = "Password is required!";
+            status.innerText = "Password is required to make changes!";
             return;
         }
 
         status.style.color = "orange";
-        status.innerText = "Connecting to Google Sheets...";
+        status.innerText = "Saving changes to Google Sheets...";
 
         const payload = {
             password: password,
             moonSighted: moonSighted,
-            hijriMonth: parseInt(hijriMonth, 10), // 🔢 Changed to a numeric value
+            hijriMonth: parseInt(hijriMonth, 10),
             hijriYear: parseInt(hijriYear, 10)
         };
 
@@ -163,11 +201,9 @@
 
             if (result.success) {
                 status.style.color = "green";
-                status.innerText = "✅ Spreadsheet updated successfully!";
-                // Clear inputs for comfort
-                document.getElementById('moonSighted').value = "";
-                document.getElementById('hijriMonth').value = "";
-                document.getElementById('hijriYear').value = "";
+                status.innerText = "🎉 Spreadsheet updated successfully!";
+                // Refresh the values on screen to show the newly saved state
+                setTimeout(fetchCurrentSettings, 1500);
             } else {
                 status.style.color = "red";
                 status.innerText = "❌ Error: " + result.error;
@@ -179,6 +215,6 @@
         }
     }
 </script>
-
+    
 </body>
 </html>
