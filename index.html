@@ -113,7 +113,7 @@
       </div>
     </div>
 
-    <script>
+<script>
       // REPLACE THIS STRING WITH YOUR DEPLOYED APPS SCRIPT WEB APP URL
       const API_URL = "https://script.google.com/macros/s/AKfycbxqBm_FQ58OkJSxJj-79jz3ElzOOhHYtZlZX5lJyOBFdZLBbxqDwyFkDmpKdLxJCf7A/exec";
 
@@ -125,18 +125,18 @@
         }, 1000);
       }
 
-window.onload = () => { 
-  startClock(); 
-  document.getElementById('datePicker').valueAsDate = new Date(); 
-  fetchData(); 
+      window.onload = () => { 
+        startClock(); 
+        document.getElementById('datePicker').valueAsDate = new Date(); 
+        fetchData(); 
 
-  // NEW: Automatically registers the background service worker script
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('./sw.js')
-      .then(() => console.log("Service Worker registered successfully!"))
-      .catch((err) => console.error("Service worker registration failed:", err));
-    }
-  };
+        // Automatically registers the background service worker script
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.register('./sw.js')
+            .then(() => console.log("Service Worker registered successfully!"))
+            .catch((err) => console.error("Service worker registration failed:", err));
+        }
+      };
 
       function handleDateChange() {
         const p = document.getElementById('datePicker');
@@ -161,96 +161,150 @@ window.onload = () => {
         handleDateChange();
       }
 
-      // Updated to handle standard fetch operations directly from our API URL
-async function fetchData() {
-  const p = document.getElementById('datePicker').value;
-  const targetDateObj = p ? new Date(p + 'T00:00:00') : new Date();
-  const mIndex = targetDateObj.getMonth();
-  const year = targetDateObj.getFullYear();
-  const targetDay = targetDateObj.getDate();
-  
-  const cacheKey = "prayerCache_" + year + "_" + mIndex;
-  const cachedData = localStorage.getItem(cacheKey);
-
-  const requestUrl = p ? `${API_URL}?date=${p}` : API_URL;
-
-  if (cachedData) {
-    // 1. LOAD INSTANTLY FROM PHONE MEMORY
-    const parsed = JSON.parse(cachedData);
-    renderDayData(parsed, targetDay);
-    
-    // 2. SILENT REFRESH (Background updates current month, then pre-fetches next month)
-    if (navigator.onLine) {
-      try {
-        const response = await fetch(requestUrl);
-        const data = await response.json();
-        if (data.success) {
-          localStorage.setItem("prayerCache_" + year + "_" + data.monthIndex, JSON.stringify(data));
-          renderDayData(data, targetDay);
-          
-          // Trigger look-ahead pre-fetch for the next month
-          preFetchNextMonth(targetDateObj);
-        }
-      } catch (err) {
-        console.warn("Background refresh skipped: offline or API unreachable.", err);
-      }
-    }
-  } else {
-    // 3. NOT IN MEMORY - SHOW SPINNER AND FETCH
-    document.getElementById('content').innerHTML = '';
-    document.getElementById('loader').style.display = 'block';
-    
-    try {
-      const response = await fetch(requestUrl);
-      const data = await response.json();
-      if (data.success) {
-        localStorage.setItem("prayerCache_" + year + "_" + data.monthIndex, JSON.stringify(data));
-        renderDayData(data, targetDay);
+      // Updated to handle standard fetch operations and record offline anchors
+      async function fetchData() {
+        const p = document.getElementById('datePicker').value;
+        const todayStr = new Date().toISOString().split('T');
+        const targetDateObj = p ? new Date(p + 'T00:00:00') : new Date();
+        const mIndex = targetDateObj.getMonth();
+        const year = targetDateObj.getFullYear();
+        const targetDay = targetDateObj.getDate();
         
-        // Trigger look-ahead pre-fetch for the next month
-        preFetchNextMonth(targetDateObj);
-      } else {
-        throw new Error(data.error || "Unknown database error");
+        const cacheKey = "prayerCache_" + year + "_" + mIndex;
+        const cachedData = localStorage.getItem(cacheKey);
+
+        const requestUrl = p ? `${API_URL}?date=${p}` : API_URL;
+
+        if (cachedData) {
+          // 1. LOAD INSTANTLY FROM PHONE MEMORY
+          const parsed = JSON.parse(cachedData);
+          renderDayData(parsed, targetDay);
+          
+          // 2. SILENT REFRESH (Background updates current month, then pre-fetches next month)
+          if (navigator.onLine) {
+            try {
+              const response = await fetch(requestUrl);
+              const data = await response.json();
+              if (data.success) {
+                // 🔐 ANCHOR CAPTURE: Save the ground truth if fetching today's real live data
+                if (!p || p === todayStr) {
+                  localStorage.setItem("hijriAnchorGregorian", todayStr);
+                  localStorage.setItem("hijriAnchorString", data.hijri);
+                }
+
+                localStorage.setItem("prayerCache_" + year + "_" + data.monthIndex, JSON.stringify(data));
+                renderDayData(data, targetDay);
+                
+                // Trigger look-ahead pre-fetch for the next month
+                preFetchNextMonth(targetDateObj);
+              }
+            } catch (err) {
+              console.warn("Background refresh skipped: offline or API unreachable.", err);
+            }
+          }
+        } else {
+          // 3. NOT IN MEMORY - SHOW SPINNER AND FETCH
+          document.getElementById('content').innerHTML = '';
+          document.getElementById('loader').style.display = 'block';
+          
+          try {
+            const response = await fetch(requestUrl);
+            const data = await response.json();
+            if (data.success) {
+              // 🔐 ANCHOR CAPTURE: Save the ground truth if fetching today's real live data
+              if (!p || p === todayStr) {
+                localStorage.setItem("hijriAnchorGregorian", todayStr);
+                localStorage.setItem("hijriAnchorString", data.hijri);
+              }
+
+              localStorage.setItem("prayerCache_" + year + "_" + data.monthIndex, JSON.stringify(data));
+              renderDayData(data, targetDay);
+              
+              // Trigger look-ahead pre-fetch for the next month
+              preFetchNextMonth(targetDateObj);
+            } else {
+              throw new Error(data.error || "Unknown database error");
+            }
+          } catch (err) {
+            document.getElementById('loader').style.display = 'none';
+            document.getElementById('content').innerHTML = `
+              <div style="text-align:center; padding: 20px; color: var(--warning); font-weight:bold;">
+                Failed to sync live data.<br><span style="font-size:0.75rem; font-weight:normal;">Please check your connection.</span>
+              </div>`;
+            console.error(err);
+          }
+        }
       }
-    } catch (err) {
-      document.getElementById('loader').style.display = 'none';
-      document.getElementById('content').innerHTML = `
-        <div style="text-align:center; padding: 20px; color: var(--warning); font-weight:bold;">
-          Failed to sync live data.<br><span style="font-size:0.75rem; font-weight:normal;">Please check your connection.</span>
-        </div>`;
-      console.error(err);
-    }
-  }
-}
 
-// NEW HELPER FUNCTION: Silently downloads and caches the subsequent month
-function preFetchNextMonth(currentDateObj) {
-  if (!navigator.onLine) return;
+      function preFetchNextMonth(currentDateObj) {
+        if (!navigator.onLine) return;
 
-  // Calculate the first day of the NEXT month
-  const nextMonthObj = new Date(currentDateObj.getFullYear(), currentDateObj.getMonth() + 1, 1);
-  const nextYear = nextMonthObj.getFullYear();
-  const nextMIndex = nextMonthObj.getMonth();
-  
-  // Format as YYYY-MM-DD for your backend parameter parser
-  const nextMonthStr = `${nextYear}-${String(nextMIndex + 1).padStart(2, '0')}-01`;
-  const nextRequestUrl = `${API_URL}?date=${nextMonthStr}`;
+        const nextMonthObj = new Date(currentDateObj.getFullYear(), currentDateObj.getMonth() + 1, 1);
+        const nextYear = nextMonthObj.getFullYear();
+        const nextMIndex = nextMonthObj.getMonth();
+        
+        const nextMonthStr = `${nextYear}-${String(nextMIndex + 1).padStart(2, '0')}-01`;
+        const nextRequestUrl = `${API_URL}?date=${nextMonthStr}`;
 
-  fetch(nextRequestUrl)
-    .then(res => res.json())
-    .then(data => {
-      if (data.success) {
-        // Cache it securely under the next month's identifier key
-        localStorage.setItem("prayerCache_" + nextYear + "_" + data.monthIndex, JSON.stringify(data));
-        console.log(`Look-ahead cache successful for month index: ${data.monthIndex}`);
+        fetch(nextRequestUrl)
+          .then(res => res.json())
+          .then(data => {
+            if (data.success) {
+              localStorage.setItem("prayerCache_" + nextYear + "_" + data.monthIndex, JSON.stringify(data));
+              console.log(`Look-ahead cache successful for month index: ${data.monthIndex}`);
+            }
+          })
+          .catch(err => console.warn("Silent pre-fetch failed (likely offline):", err));
       }
-    })
-    .catch(err => console.warn("Silent pre-fetch failed (likely offline):", err));
-}
 
       function renderDayData(d, targetDay) {
         document.getElementById('loader').style.display = 'none';
-        document.getElementById('isl-hero').innerText = d.hijri;
+        
+        // 🛠️ OFFLINE HIJRI DELTA CALCULATOR ENGINE
+        const pVal = document.getElementById('datePicker').value;
+        const todayStr = new Date().toISOString().split('T');
+        const targetDateStr = pVal || todayStr;
+        
+        let calculatedHijri = d.hijri; // Default fallback
+
+        if (!navigator.onLine) {
+          const anchorGregorian = localStorage.getItem("hijriAnchorGregorian");
+          const anchorHijri = localStorage.getItem("hijriAnchorString");
+
+          if (anchorGregorian && anchorHijri) {
+            const targetDateObj = new Date(targetDateStr + 'T00:00:00');
+            const anchorDateObj = new Date(anchorGregorian + 'T00:00:00');
+            
+            // Calculate exact elapsed days between target and anchor
+            const diffTime = targetDateObj - anchorDateObj;
+            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+            if (diffDays === 0) {
+              calculatedHijri = anchorHijri;
+            } else {
+              // Parse out the leading day digits (e.g., "24" from "24 Dhul-Qadah 1447")
+              const match = anchorHijri.match(/^(\d+)\s+(.+)$/);
+              if (match) {
+                const baseDay = parseInt(match, 10);
+                const monthYearText = match;
+                const dynamicDay = baseDay + diffDays;
+
+                // Restrict offline increments to a maximum of 29 days
+                if (dynamicDay > 0 && dynamicDay <= 29) {
+                  calculatedHijri = `${dynamicDay} ${monthYearText}`;
+                } else {
+                  calculatedHijri = "--";
+                }
+              } else {
+                calculatedHijri = "--";
+              }
+            }
+          } else {
+            calculatedHijri = "--";
+          }
+        }
+
+        document.getElementById('isl-hero').innerText = calculatedHijri;
         document.getElementById('lastUpd').innerText = "Last Sync: " + new Date().toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'});
 
         let r = null;
@@ -281,15 +335,15 @@ function preFetchNextMonth(currentDateObj) {
           </div>`;
 
         let h = '';
-        h += singleRow('Subhe Sadiq', 'Tahajjud End', r[1]);
-        h += tripleRow('Fajr', 'Morning Prayer', r[2], r[3], r[4]);
-        h += singleRow('Sunrise', 'Prohibited', r[5], true);
-        h += singleRow('Zawaal', 'Prohibited', r[6], true);
-        h += tripleRow('Zohr', 'Midday Prayer', r[7], '---', '13:00');
-        h += tripleRow('Assr', 'Afternoon Prayer', r[8], r[9], r[10]);
-        h += singleRow('Sunset', 'Prohibited', r[11], true);
-        h += tripleRow('Maghrib', 'Evening Prayer', r[12], '---', '---');
-        h += tripleRow('Esha', 'Night Prayer', r[13], r[14], r[15]);
+        h += singleRow('Subhe Sadiq', 'Tahajjud End', r);
+        h += tripleRow('Fajr', 'Morning Prayer', r, r, r);
+        h += singleRow('Sunrise', 'Prohibited', r, true);
+        h += singleRow('Zawaal', 'Prohibited', r, true);
+        h += tripleRow('Zohr', 'Midday Prayer', r, '---', '13:00');
+        h += tripleRow('Assr', 'Afternoon Prayer', r, r, r);
+        h += singleRow('Sunset', 'Prohibited', r, true);
+        h += tripleRow('Maghrib', 'Evening Prayer', r, '---', '---');
+        h += tripleRow('Esha', 'Night Prayer', r, r, r);
 
         h += `
           <div class="prayer-row raised" style="margin-top: 30px; background: #fff; border-left: 6px solid var(--primary); grid-template-columns: 1fr 1fr;">
