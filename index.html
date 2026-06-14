@@ -267,45 +267,43 @@
         
         let calculatedHijri = d.hijri; // Default fallback
 
-        if (!navigator.onLine) {
-          const anchorGregorian = localStorage.getItem("hijriAnchorGregorian");
-          const anchorHijri = localStorage.getItem("hijriAnchorString");
+        const anchorGregorian = localStorage.getItem("hijriAnchorGregorian");
+        const anchorHijri = localStorage.getItem("hijriAnchorString");
 
-          if (anchorGregorian && anchorHijri) {
-            const targetDateObj = new Date(targetDateStr + 'T00:00:00');
-            const anchorDateObj = new Date(anchorGregorian + 'T00:00:00');
-            
-            // Calculate exact elapsed days between target and anchor
-            const diffTime = targetDateObj - anchorDateObj;
-            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+        if (anchorGregorian && anchorHijri) {
+          const targetDateObj = new Date(targetDateStr + 'T00:00:00');
+          const anchorDateObj = new Date(anchorGregorian + 'T00:00:00');
+          
+          // Calculate exact elapsed days between target and anchor
+          const diffTime = targetDateObj - anchorDateObj;
+          const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
 
-            if (diffDays === 0) {
-              calculatedHijri = anchorHijri;
-            } else {
-              // Parse out the leading day digits (e.g., "24" from "24 Dhul-Qadah 1447")
-              const match = anchorHijri.match(/^(\d+)\s+(.+)$/);
-              if (match) {
-                const baseDay = parseInt(match, 10);
-                const monthYearText = match;
-                const dynamicDay = baseDay + diffDays;
+          if (diffDays === 0) {
+            calculatedHijri = anchorHijri;
+          } else {
+            // Parse out the leading day digits (e.g., "24" from "24 Dhul-Qadah 1447")
+            const match = anchorHijri.match(/^(\d+)\s+(.+)$/);
+            if (match) {
+              const baseDay = parseInt(match, 10);
+              const monthYearText = match;
+              const dynamicDay = baseDay + diffDays;
 
-                // Restrict offline increments to a maximum of 29 days
-                if (dynamicDay > 0 && dynamicDay <= 29) {
-                  calculatedHijri = `${dynamicDay} ${monthYearText}`;
-                } else {
-                  calculatedHijri = "--";
-                }
+              // Restrict offline increments to a maximum of 29 days
+              if (dynamicDay > 0 && dynamicDay <= 29) {
+                calculatedHijri = `${dynamicDay} ${monthYearText}`;
               } else {
                 calculatedHijri = "--";
               }
+            } else {
+              calculatedHijri = "--";
             }
-          } else {
-            calculatedHijri = "--";
           }
+        } else {
+          calculatedHijri = d.hijri || "--";
         }
-
-        document.getElementById('isl-hero').innerText = calculatedHijri;
-        document.getElementById('lastUpd').innerText = "Last Sync: " + new Date().toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'});
+      
+      document.getElementById('isl-hero').innerText = calculatedHijri;
+      document.getElementById('lastUpd').innerText = "Last Sync: " + new Date().toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'});
 
         let r = null;
         for (let i = 1; i < d.days.length; i++) {
