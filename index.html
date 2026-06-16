@@ -302,6 +302,7 @@
           calculatedHijri = d.hijri || "--";
         }
       
+      document.getElementById('isl-hero').innerText = "";
       document.getElementById('isl-hero').innerText = calculatedHijri;
       document.getElementById('lastUpd').innerText = "Last Sync: " + new Date().toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'});
 
