@@ -80,7 +80,7 @@
           <div id="live-g" class="val-st">-- --- ----</div>
         </div>
         <div class="info-unit" style="flex: 1.2; border-left: 1px solid var(--shadow-dark); padding-left: 15px;">
-          <span class="label-st">Islamic Date</span>
+          <span class="label-st">Islamicc Date</span>
           <div id="isl-hero" class="isl-val">-- --- ----</div>
         </div>
       </div>
@@ -284,7 +284,7 @@
             // Parse out the leading day digits (e.g., "24" from "24 Dhul-Qadah 1447")
             const match = anchorHijri.match(/^(\d+)\s+(.+)$/);
             if (match) {
-              const baseDay = parseInt(match, 10);
+              const baseDay = parseInt(match(), 10);
               const monthYearText = match;
               const dynamicDay = baseDay + diffDays;
 
@@ -302,7 +302,6 @@
           calculatedHijri = d.hijri || "--";
         }
       
-      document.getElementById('isl-hero').innerText = "";
       document.getElementById('isl-hero').innerText = calculatedHijri;
       document.getElementById('lastUpd').innerText = "Last Sync: " + new Date().toLocaleTimeString('en-GB', {hour:'2-digit', minute:'2-digit'});
 
