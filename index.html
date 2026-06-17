@@ -284,8 +284,8 @@
             // Parse out the leading day digits (e.g., "24" from "24 Dhul-Qadah 1447")
             const match = anchorHijri.match(/^(\d+)\s+(.+)$/);
             if (match) {
-              const baseDay = parseInt(match, 10);
-              const monthYearText = match;
+              const baseDay = parseInt(match[1], 10);
+              const monthYearText = match[2];
               const dynamicDay = baseDay + diffDays;
 
               // Restrict offline increments to a maximum of 29 days
