@@ -138,9 +138,19 @@
         }
       };
 
+      function getLocalDateString() {
+        const now = new Date();
+      
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+      
+        return `${year}-${month}-${day}`;
+      }
+
       function handleDateChange() {
         const p = document.getElementById('datePicker');
-        const t = new Date().toISOString().split('T')[0];
+        const t = getLocalDateString();
         const btn = document.getElementById('todayBtn');
         
         if (p.value !== t) {
@@ -164,7 +174,7 @@
       // Updated to handle standard fetch operations and record offline anchors
       async function fetchData() {
         const p = document.getElementById('datePicker').value;
-        const todayStr = new Date().toISOString().split('T')[0];
+        const todayStr = getLocalDateString();
         const targetDateObj = p ? new Date(p + 'T00:00:00') : new Date();
         const mIndex = targetDateObj.getMonth();
         const year = targetDateObj.getFullYear();
@@ -262,7 +272,7 @@
         
         // 🛠️ OFFLINE HIJRI DELTA CALCULATOR ENGINE
         const pVal = document.getElementById('datePicker').value;
-        const todayStr = new Date().toISOString().split('T')[0];
+        const todayStr = getLocalDateString();
         const targetDateStr = pVal || todayStr;
         
         let calculatedHijri = d.hijri; // Default fallback
