@@ -9,7 +9,7 @@
   "orientation": "portrait",
   "icons": [
     {
-      "src": "./icon-512_mask.png",
+      "src": "./dome_Red_mask_512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
