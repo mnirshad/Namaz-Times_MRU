@@ -742,21 +742,37 @@ async function checkForUpdates() {
         if (cachedString === latestString) {
             console.log("Cache is already up to date.");
         } else {
-            console.log("New data detected. Updating cache...");
-
-            localStorage.setItem(
-                YEAR_CACHE_KEY,
-                JSON.stringify({
-                    lastSync: Date.now(),
-                    data: latest
-                })
-            );
-            // Update the in-memory copy
-            yearData = latest;
-            // Refresh the current screen
-            renderDayData(yearData);
-            console.log("Screen refreshed with latest data.");
-                    }
+                console.log("New data detected. Updating cache...");
+            
+                // Save new year cache
+                localStorage.setItem(
+                    YEAR_CACHE_KEY,
+                    JSON.stringify({
+                        lastSync: Date.now(),
+                        data: latest
+                    })
+                );
+            
+                // 🔥 IMPORTANT: reset Hijri anchor to the new official date
+                localStorage.setItem(
+                    "hijriAnchorGregorian",
+                    getLocalDateString()
+                );
+            
+                localStorage.setItem(
+                    "hijriAnchorString",
+                    latest.hijri
+                );
+            
+                // Update in-memory copy
+                yearData = latest;
+            
+                // Refresh screen
+                renderDayData(yearData);
+            
+                console.log("Hijri anchor updated:", latest.hijri);
+                console.log("Screen refreshed with latest data.");
+            }
       } catch (err) {
         console.error(err);
         }
@@ -1146,7 +1162,7 @@ function resetPersonalSettings(){
               <div class="hubVersion">      
                   Namaz Time 
                   <br>
-                 Version V77.3 Wed 15 Jul 26
+                 Version V78.3 Thu 16 Jul 26
               </div>          
         </div>
     
