@@ -6,89 +6,43 @@
     <title>Namaz MRU - Admin Panel</title>
     <style>
         :root {
-            --primary: #1e4d50;
-            --bg: #e0fdfb;
-            --card-bg: #ffffff;
-            --text: #2d3748;
+            --primary: #1e4d50;            --bg: #e0fdfb;            --card-bg: #ffffff;            --text: #2d3748;
         }
         body {
-            font-family: 'Segoe UI', system-ui, sans-serif;
-            background-color: var(--bg);
-            color: var(--text);
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            box-sizing: border-box;
+            font-family: 'Segoe UI', system-ui, sans-serif;   background-color: var(--bg);    color: var(--text);    margin: 0;    padding: 20px;    display: flex;
+            justify-content: center;            align-items: center;            min-height: 100vh;            box-sizing: border-box;
         }
         .admin-card {
-            background: var(--card-bg);
-            padding: 25px;
-            border-radius: 16px;
-            box-shadow: 0 10px 25px rgba(30, 77, 80, 0.15);
-            width: 100%;
-            max-width: 400px;
+            background: var(--card-bg);    padding: 25px;     border-radius: 16px;      box-shadow: 0 10px 25px rgba(30, 77, 80, 0.15);     width: 100%;   max-width: 400px;
         }
         h2 {
-            color: var(--primary);
-            margin-top: 0;
-            text-align: center;
-            font-size: 1.5rem;
+            color: var(--primary);     margin-top: 0;      text-align: center;      font-size: 1.5rem;
         }
         .form-group {
             margin-bottom: 18px;
         }
         label {
-            display: block;
-            margin-bottom: 6px;
-            font-weight: 600;
-            font-size: 0.9rem;
-            color: var(--primary);
+            display: block;     margin-bottom: 6px;      font-weight: 600;     font-size: 0.9rem;     color: var(--primary);
         }
         input {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #cbd5e1;
-            border-radius: 8px;
-            box-sizing: border-box;
-            font-size: 1rem;
-            outline: none;
+            width: 100%;     padding: 12px;     border: 2px solid #cbd5e1;     border-radius: 8px;     box-sizing: border-box;   font-size: 1rem;     outline: none;
             transition: border-color 0.2s;
         }
         input:focus {
             border-color: var(--primary);
         }
         button {
-            width: 100%;
-            padding: 14px;
-            background-color: var(--primary);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 10px;
-            transition: opacity 0.2s;
+            width: 100%;            padding: 14px;            background-color: var(--primary);            color: white;            border: none;            border-radius: 8px;
+            font-size: 1rem;            font-weight: bold;            cursor: pointer;            margin-top: 10px;            transition: opacity 0.2s;
         }
         button:active {
             opacity: 0.8;
         }
         #statusMessage {
-            margin-top: 15px;
-            text-align: center;
-            font-weight: 600;
-            font-size: 0.95rem;
+            margin-top: 15px;            text-align: center;            font-weight: 600;            font-size: 0.95rem;
         }
         .back-link {
-            display: block;
-            text-align: center;
-            margin-top: 20px;
-            color: var(--primary);
-            text-decoration: none;
-            font-size: 0.9rem;
+            display: block;    text-align: center;    margin-top: 20px;     color: var(--primary);      text-decoration: none;     font-size: 0.9rem;
         }
     </style>
 </head>
@@ -127,6 +81,7 @@
 </div>
 
 <script>
+    
     // 🔗 Your Apps Script Web App URL
     // const API_URL = "https://script.google.com/macros/s/AKfycbxqBm_FQ58OkJSxJj-79jz3ElzOOhHYtZlZX5lJyOBFdZLBbxqDwyFkDmpKdLxJCf7A/exec"; NamazTime_githubPWA_project (2 months cached)
     
