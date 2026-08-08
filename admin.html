@@ -152,6 +152,9 @@
         try {
             const response = await fetch(API_URL, {
                 method: "POST",
+                headers: {
+                "Content-Type": "text/plain;charset=utf-8" // Bypasses CORS preflight check while passing raw JSON string
+            },
                 body: JSON.stringify(payload)
             });
             
