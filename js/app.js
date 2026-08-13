@@ -1,1 +1,1076 @@
+      // REPLACE THIS STRING WITH YOUR DEPLOYED APPS SCRIPT WEB APP URL
+      const API_URL = "https://script.google.com/macros/s/AKfycbznuarW_UGUZyZKuapdjhtSlIkC1ut71CfsOq0h1XvGmG02R6vaZB_Vf9JXFkD3xaosVw/exec";
+        
+      
+      const USE_YEAR_CACHE = true;
+      const YEAR_CACHE_KEY = "prayerCache_year";
+//      const CACHE_MAX_AGE = 24 * 60 * 60 * 1000; // 24 hours
+      
+      let yearData = null;
+
+      const ASR_METHOD = {
+          HANAFI: "hanafi",
+          SHAAFII: "shaafii"
+      };
+      
+      let personalSettings = loadPersonalSettings();
+      let tempPrayerSettings = null;
+      
+      const MIN_OFFSET=-30;
+      const MAX_OFFSET=30;
+      
+      function startClock() {
+        setInterval(() => {
+          const now = new Date();
+          document.getElementById('full-clock').innerText = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+          document.getElementById('live-g').innerText = now.toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+        }, 1000);
+      }
+
+      window.onload = async () => {
+        startClock();
+        document.getElementById('datePicker').valueAsDate = new Date();
+        updatePersonalBanner();
+        const hubButton = document.getElementById("controlHubBtn");
+        const hubMenu = document.getElementById("controlHubMenu");
+
+            hubButton.addEventListener("click", function(e){
+                e.stopPropagation();
+                hubMenu.classList.toggle("show");
+                hubButton.classList.toggle("open");
+            });
+            document.addEventListener("click", function(){
+                hubMenu.classList.remove("show");
+                hubButton.classList.remove("open");
+            });
+//          document.addEventListener("click", function(){
+//             hubMenu.classList.add("hidden");
+//             });
+            hubMenu.addEventListener("click", function(e){
+              e.stopPropagation();
+             });
+        if (USE_YEAR_CACHE) {
+          yearData = await fetchWholeYear();
+          renderDayData(
+            yearData,
+            new Date()
+          );
+          
+        } else {
+//          fetchData();
+        } 
+        
+        // Automatically registers the background service worker script
+        if ('serviceWorker' in navigator) {
+          navigator.serviceWorker.register('./sw.js')
+              .then((registration) => {
+                  console.log("Service Worker registered successfully!");
+                  // Ask the browser to check for a newer SW
+                  registration.update();
+                  
+                let refreshing = false;
+
+                  navigator.serviceWorker.addEventListener('controllerchange', () => {
+                      if (!refreshing) {
+                          console.log("New Service Worker has taken control. Reloading...");
+                          refreshing = true;
+                          window.location.reload();
+                      }
+                   });
+              })
+              .catch((err) => {
+                  console.error("Service Worker registration failed:", err);
+              });
+              }
+          // Hidden administrator access - long press only
+                let adminPressTimer = null;
+                const adminArea = document.getElementById("adminTouchArea");
+                if(adminArea){
+                    const startPress = () => {
+                        adminPressTimer = setTimeout(() => {
+                            window.location.replace("./admin.html");
+                        }, 3000);
+                    };
+                    const cancelPress = () => {
+                        clearTimeout(adminPressTimer);
+                        adminPressTimer = null;                    };
+                    adminArea.addEventListener("mousedown", startPress);
+                    adminArea.addEventListener("mouseup", cancelPress);
+                    adminArea.addEventListener("mouseleave", cancelPress);
+                    adminArea.addEventListener("touchstart", startPress);
+                    adminArea.addEventListener("touchend", cancelPress);
+                    adminArea.addEventListener("touchcancel", cancelPress);   }
+        setTimeout(() => {
+            checkForUpdates();
+        }, 500);
+       updatePersonalBanner();        
+      };
+
+function showDialog(icon, title, message){
+    document.getElementById("dialogIcon").textContent = icon;
+    document.getElementById("dialogTitle").textContent = title;
+    document.getElementById("dialogMessage").textContent = message;
+    document.getElementById("appDialog").style.display = "flex";
+}
+
+function closeDialog(e){
+    if(e && e.target !== document.getElementById("appDialog"))
+        return;
+    document.getElementById("appDialog").style.display = "none";}
+    document.addEventListener("keydown", function(e){
+    if(e.key === "Escape"){ closeDialog(); }
+
+});
+
+      
+function adjustInterval(start, end, offsetMinutes) {
+    return {
+        start: adjustTime(start, offsetMinutes),
+        end: adjustTime(end, offsetMinutes)
+    };
+}
+
+function getPersonalisedDayData(dayData) {
+    const d = JSON.parse(JSON.stringify(dayData));
+    const offset = Number(personalSettings.locationOffset);
+    //
+    // MORNING PRAYERS
+    //
+    d.subhe_sadiq = adjustTime(dayData.subhe_sadiq, -offset);
+    d.fajr_start   = adjustTime(dayData.fajr_start, -offset);
+    //
+    // SUNRISE (INTERVAL)
+    //
+    const sunrise = adjustInterval(dayData.sunrise_start, dayData.sunrise_end, -offset);
+    d.sunrise_start = sunrise.start;
+    d.sunrise_end   = sunrise.end;
+    //
+    // ZAWAAL (NO CHANGE)
+    //
+    d.zawaal_start = dayData.zawaal_start;
+    d.zawaal_end   = dayData.zawaal_end;
+    //
+    // ASR
+    //
+    let asr = adjustTime(dayData.asr_start, -offset);
+
+    if (personalSettings.asrMethod === ASR_METHOD.SHAAFII) {
+        asr = adjustTime(asr, -60);    }
+    d.asr_start = asr;
+    //
+    // EVENING PRAYERS
+    //
+    d.maghrib_start = adjustTime(dayData.maghrib_start, offset);
+    d.esha_start    = adjustTime(dayData.esha_start, offset);
+    //
+    // SUNSET (INTERVAL)
+    //
+    const sunset = adjustInterval( dayData.sunset_start, dayData.sunset_end, offset);
+    d.sunset_start = sunset.start;
+    d.sunset_end   = sunset.end;
+    return d;
+}
+
+function savePersonalSettings(settings) {
+    localStorage.setItem( "personalPrayerSettings", JSON.stringify(settings));
+}
+
+function loadPersonalSettings(){
+    const saved = localStorage.getItem("personalPrayerSettings");
+    if(saved){
+        try{
+            const data = JSON.parse(saved);
+            return {
+                locationOffset:
+                    Number(data.locationOffset) || 0,
+                asrMethod:
+                    data.asrMethod || ASR_METHOD.HANAFI
+            };
+        }
+        catch(e){
+            console.warn(
+                "Invalid prayer settings. Resetting."
+            );
+        }
+    }
+    return {
+        locationOffset:0,
+        asrMethod:ASR_METHOD.HANAFI
+    };
+}
+
+ function updatePersonalBanner(){
+    const banner =
+        document.getElementById("personalBanner");
+    if(!banner) return;
+    const offsetText =
+        personalSettings.locationOffset === 0
+        ?
+        "None"
+        :
+        (
+            personalSettings.locationOffset > 0
+            ?
+            "+" + personalSettings.locationOffset + " min"
+            :
+            personalSettings.locationOffset + " min"
+        );
+    const asrText =
+        personalSettings.asrMethod === ASR_METHOD.HANAFI
+        ?
+        "Hanafi (Default)"
+        :
+        "Shaafi' / Hanbali";
+    banner.style.display="block";
+    banner.innerHTML = `
+    ⚙️ <b>Prayer Calculation Settings</b>
+    <br><br>
+    <b>Datebase:</b><br>
+    Official Jummah Masjid's Timetable
+    <br>
+    Last Updated: Ramadaan 1446/2024
+    <br><br>
+    <b>Location Offset:</b><br>
+    ${offsetText}
+    <br><br>
+    <b>Asr Method:</b><br>
+    ${asrText}
+    `;
+}
+      
+function resetTempSettings(){
+    if(!tempPrayerSettings) return;
+    tempPrayerSettings = {
+        locationOffset:0,
+        asrMethod:ASR_METHOD.HANAFI
+    };
+    updatePrayerSettingsDialog();
+}
+
+//function refreshPrayerView(){
+//    const d = getCurrentDayData();
+//    renderPrayerUI(d);
+//    updatePersonalBanner();
+//}
+
+function refreshPrayerView() {
+    const picker = document.getElementById("datePicker");
+    const targetDate =
+        picker.value
+        ? new Date(picker.value + "T00:00:00")
+        : new Date();
+    renderDayData(yearData, targetDate);
+    updatePersonalBanner();
+}
+      
+function onOffsetChange(value) {
+    personalSettings.locationOffset = Number(value);
+    savePersonalSettings(personalSettings);
+    refreshPrayerView();
+}
+
+function onAsrMethodChange(value) {
+    personalSettings.asrMethod = value;
+    savePersonalSettings(personalSettings);
+    refreshPrayerView();
+}
+
+
+function changeTempOffset(step){
+    if(!tempPrayerSettings) return;
+    tempPrayerSettings.locationOffset += step;
+    if(tempPrayerSettings.locationOffset < MIN_OFFSET)
+        tempPrayerSettings.locationOffset = MIN_OFFSET;
+    if(tempPrayerSettings.locationOffset > MAX_OFFSET)
+        tempPrayerSettings.locationOffset = MAX_OFFSET;
+    updatePrayerSettingsDialog();
+}      
+
+function changeTempAsr(value){
+    if(!tempPrayerSettings) return;
+    tempPrayerSettings.asrMethod=value;
+    updatePrayerSettingsDialog();
+}
+
+function openPrayerSettings(){
+    closeControlHub();
+    tempPrayerSettings = {
+        locationOffset:
+            personalSettings.locationOffset,
+        asrMethod:
+            personalSettings.asrMethod
+    };
+    document.getElementById("prayerSettingsModal")
+        .style.display="flex";
+    updatePrayerSettingsDialog();
+}
+
+      
+function savePrayerSettings(){
+    if(!tempPrayerSettings) return;
+    personalSettings = {
+        locationOffset:
+            tempPrayerSettings.locationOffset,
+        asrMethod:
+            tempPrayerSettings.asrMethod
+    };
+    savePersonalSettings(personalSettings);
+    refreshPrayerView();
+    updatePersonalBanner();
+    closePrayerSettings();
+    console.log(
+        "Prayer settings saved",
+        personalSettings
+    );
+}
+      
+function closePrayerSettings(){
+    tempPrayerSettings=null;
+    document.getElementById("prayerSettingsModal")
+        .style.display="none";
+}
+      
+function closeControlHub(){
+    const menu = document.getElementById("controlHubMenu");
+    const btn  = document.getElementById("controlHubBtn");
+    if(menu){
+        menu.classList.remove("show");
+    }
+    if(btn){
+        btn.classList.remove("open");
+    }
+}
+    
+   
+function getLocalDateString() {
+  const now = new Date();
+
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  const day = String(now.getDate()).padStart(2, '0');
+
+  return `${year}-${month}-${day}`;
+}
+
+function handleDateChange() {
+  const p = document.getElementById('datePicker');
+  const t = getLocalDateString();
+  const btn = document.getElementById('todayBtn');
+  
+  if (p.value !== t) {
+    btn.classList.add('active');
+    const selDate = new Date(p.value + 'T00:00:00');
+    const day = selDate.getDate();
+    const month = selDate.toLocaleDateString('en-GB', { month: 'short' }).toUpperCase();
+    document.getElementById('search-lbl').innerText = day + " " + month;
+  } else {
+    btn.classList.remove('active');
+    document.getElementById('search-lbl').innerText = "";
+  }
+//        fetchData();
+  renderDayData(
+      yearData,
+      new Date(p.value+'T00:00:00')
+  );
+
+}
+      
+function toggleModal(show) {
+  const modal = document.getElementById('m');
+  const header = document.querySelector('.header-block');
+  
+  if (show) {
+    // 1. Slide header up out of view
+    header.classList.add('hidden');
+    // 2. Show the modal window overlay
+    modal.style.display = 'flex';
+  } else {
+    // 1. Slide header back down into view
+    header.classList.remove('hidden');
+    // 2. Hide the modal window overlay
+    modal.style.display = 'none';
+  }
+}
+      
+function resetToToday() {
+  document.getElementById('datePicker').valueAsDate = new Date();
+  handleDateChange();
+}
+
+/*    
+      async function fetchWholeYear() {
+   
+        const cache = localStorage.getItem(YEAR_CACHE_KEY);
+        if (cache) {
+          const parsed = JSON.parse(cache);
+          if ((Date.now() - parsed.lastSync) < CACHE_MAX_AGE) {
+            if (!localStorage.getItem("hijriAnchorGregorian")) {
+                localStorage.setItem(
+                    "hijriAnchorGregorian",
+                    getLocalDateString()
+                );
+                localStorage.setItem(
+                    "hijriAnchorString",
+                    parsed.data.hijri
+                );
+            }
+            console.log("Using whole-year cache");
+            return parsed.data;
+          }
+        }
+        console.log("Downloading whole year");
+        const response = await fetch(`${API_URL}?year=true`);
+        const data = await response.json();
+             
+        localStorage.setItem(
+          YEAR_CACHE_KEY,
+          JSON.stringify({
+            lastSync: Date.now(),
+            data: data
+          })
+        );
+        return data;
+      }
+*/
+
+async function fetchWholeYear() {
+    const cache = localStorage.getItem(YEAR_CACHE_KEY);
+    if (cache) {
+        const parsed = JSON.parse(cache);
+        if (!localStorage.getItem("hijriAnchorGregorian")) {
+            localStorage.setItem("hijriAnchorGregorian", getLocalDateString() );
+            localStorage.setItem("hijriAnchorString", parsed.data.hijri ); }
+        console.log("Using whole-year cache");
+        return parsed.data;
+    }
+    console.log("Downloading whole year");
+    const response = await fetch(`${API_URL}?year=true`);
+    const data = await response.json();
+    localStorage.setItem(  YEAR_CACHE_KEY, JSON.stringify({lastSync: Date.now(), data: data})
+    );
+    // After fetching fresh year data
+    localStorage.setItem("hijriAnchorGregorian", getLocalDateString());
+    localStorage.setItem("hijriAnchorString", data.hijri);
+  
+    return data;
+}
+      
+async function checkForUpdates() {
+    console.log("Checking for newer backend data...");
+    try {
+        const response = await fetch(`${API_URL}?year=true`);
+        const latest = await response.json();
+        const cache = JSON.parse(localStorage.getItem(YEAR_CACHE_KEY));
+        if (!cache) {
+            console.log("No cache found.");
+            return;
+        }
+        console.log("Comparing cache with backend...");
+      
+        const cachedString = JSON.stringify(cache.data);
+        const latestString = JSON.stringify(latest);
+      
+        if (cachedString === latestString) {
+            console.log("Cache is already up to date.");
+        } else {
+                console.log("New data detected. Updating cache...");
+            
+                // Save new year cache
+                localStorage.setItem(
+                    YEAR_CACHE_KEY,
+                    JSON.stringify({
+                        lastSync: Date.now(),
+                        data: latest
+                    })
+                );
+            
+                // 🔥 IMPORTANT: reset Hijri anchor to the new official date
+                localStorage.setItem(
+                    "hijriAnchorGregorian",
+                    getLocalDateString()
+                );
+            
+                localStorage.setItem(
+                    "hijriAnchorString",
+                    latest.hijri
+                );
+            
+                // Update in-memory copy
+                yearData = latest;
+            
+                // Refresh screen
+                renderDayData(yearData);
+            
+                console.log("Hijri anchor updated:", latest.hijri);
+                console.log("Screen refreshed with latest data.");
+            }
+      } catch (err) {
+        console.error(err);
+        }
+  }
+      
+      // Updated to handle standard fetch operations and record offline anchors
+  
+    async function fetchData() {
+        const p = document.getElementById('datePicker').value;
+        const todayStr = getLocalDateString();
+        const targetDateObj = p ? new Date(p + 'T00:00:00') : new Date();
+        const mIndex = targetDateObj.getMonth();
+        const year = targetDateObj.getFullYear();
+        const targetDay = targetDateObj.getDate();
+        
+        const cacheKey = "prayerCache_" + year + "_" + mIndex;
+        const cachedData = localStorage.getItem(cacheKey);
+
+        const requestUrl = p ? `${API_URL}?date=${p}` : API_URL;
+
+        if (cachedData) {
+          // 1. LOAD INSTANTLY FROM PHONE MEMORY
+          const parsed = JSON.parse(cachedData);
+          renderDayData(parsed, targetDay);
+          
+          // 2. SILENT REFRESH (Background updates current month, then pre-fetches next month)
+          if (navigator.onLine) {
+            try {
+              const response = await fetch(requestUrl);
+              const data = await response.json();
+              if (data.success) {
+                // 🔐 ANCHOR CAPTURE: Save the ground truth if fetching today's real live data
+                if (!p || p === todayStr) {
+                  localStorage.setItem("hijriAnchorGregorian", todayStr);
+                  localStorage.setItem("hijriAnchorString", data.hijri);
+                }
+
+                localStorage.setItem("prayerCache_" + year + "_" + data.monthIndex, JSON.stringify(data));
+                renderDayData(data, targetDay);
+                
+                // Trigger look-ahead pre-fetch for the next month
+//                preFetchNextMonth(targetDateObj);
+              }
+            } catch (err) {
+              console.warn("Background refresh skipped: offline or API unreachable.", err);
+            }
+          }
+        } else {
+          // 3. NOT IN MEMORY - SHOW SPINNER AND FETCH
+          document.getElementById('content').innerHTML = '';
+          document.getElementById('loader').style.display = 'block';
+          
+          try {
+            const response = await fetch(requestUrl);
+            const data = await response.json();
+            if (data.success) {
+              // 🔐 ANCHOR CAPTURE: Save the ground truth if fetching today's real live data
+              if (!p || p === todayStr) {
+                localStorage.setItem("hijriAnchorGregorian", todayStr);
+                localStorage.setItem("hijriAnchorString", data.hijri);
+              }
+
+              localStorage.setItem("prayerCache_" + year + "_" + data.monthIndex, JSON.stringify(data));
+              renderDayData(data, targetDay);
+              
+              // Trigger look-ahead pre-fetch for the next month
+//              preFetchNextMonth(targetDateObj);
+            } else {
+              throw new Error(data.error || "Unknown database error");
+            }
+          } catch (err) {
+            document.getElementById('loader').style.display = 'none';
+            document.getElementById('content').innerHTML = `
+              <div style="text-align:center; padding: 20px; color: var(--warning); font-weight:bold;">
+                Failed to sync live data.<br><span style="font-size:0.75rem; font-weight:normal;">Please check your connection.</span>
+              </div>`;
+            console.error(err);
+          }
+        }
+      }
+
+function preFetchNextMonth(currentDateObj) {
+  if (!navigator.onLine) return;
+
+  const nextMonthObj = new Date(currentDateObj.getFullYear(), currentDateObj.getMonth() + 1, 1);
+  const nextYear = nextMonthObj.getFullYear();
+  const nextMIndex = nextMonthObj.getMonth();
+  
+  const nextMonthStr = `${nextYear}-${String(nextMIndex + 1).padStart(2, '0')}-01`;
+  const nextRequestUrl = `${API_URL}?date=${nextMonthStr}`;
+
+  fetch(nextRequestUrl)
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        localStorage.setItem("prayerCache_" + nextYear + "_" + data.monthIndex, JSON.stringify(data));
+        console.log(`Look-ahead cache successful for month index: ${data.monthIndex}`);
+      }
+    })
+    .catch(err => console.warn("Silent pre-fetch failed (likely offline):", err));
+}
+
+function adjustTime(timeStr, offsetMinutes){
+    if(!timeStr || timeStr==="---") return timeStr;
+    // Handle intervals like 06.46-07.00
+    if(timeStr.includes("-")){
+        const parts = timeStr.split("-");
+        return (adjustTime(parts[0], offsetMinutes) + "-" + adjustTime(parts[1], offsetMinutes));
+    }
+    // Accept both 05:25 and 5.25
+    const clean = timeStr.replace(".", ":");
+    const p = clean.split(":");
+    let mins = parseInt(p[0],10)*60 + parseInt(p[1],10);
+    mins += offsetMinutes;
+
+    while(mins < 0) mins += 1440;
+    while(mins >= 1440) mins -= 1440;
+
+    const h = Math.floor(mins/60);
+    const m = mins%60;
+
+    return (
+        String(h).padStart(2,"0") + "." + String(m).padStart(2,"0") );
+}
+
+
+function renderDayData(d = yearData, targetDateObj = new Date()) {
+    document.getElementById("loader").style.display = "none";
+    const targetDay = targetDateObj.getDate();
+    const targetMonth = targetDateObj.getMonth();
+    // -------------------------------------------------
+    // OFFLINE HIJRI ENGINE
+    // -------------------------------------------------
+    const todayStr = getLocalDateString();
+    let calculatedHijri = d.hijri || "--";
+    const anchorGregorian = localStorage.getItem("hijriAnchorGregorian");
+    const anchorHijri = localStorage.getItem("hijriAnchorString");
+    if (anchorGregorian && anchorHijri) {
+        const anchorDate = new Date(anchorGregorian + "T00:00:00");
+        const diffDays = Math.floor(
+            (targetDateObj - anchorDate) /
+            (1000 * 60 * 60 * 24)
+        );
+        if (diffDays === 0) {
+            calculatedHijri = anchorHijri;
+        } else {
+            const match = anchorHijri.match(/^(\d+)\s+(.+)$/);
+            if (match) {
+                const baseDay = parseInt(match[1], 10);
+                const monthText = match[2];
+                const newDay = baseDay + diffDays;
+                calculatedHijri =
+                    (newDay > 0 && newDay <= 29)
+                        ? `${newDay} ${monthText}`
+                        : "--";
+            }
+        }
+    }
+    document.getElementById("isl-hero").innerText = calculatedHijri;
+    document.getElementById("lastUpd").innerText =
+        "Last Sync: " +
+        new Date().toLocaleTimeString(
+            "en-GB",
+            {
+                hour: "2-digit",
+                minute: "2-digit"
+            }
+        );
+    // -------------------------------------------------
+    // FIND TODAY
+    // -------------------------------------------------
+    const days = d.months[targetMonth].days;
+    let r = null;
+    for (let i = 1; i < days.length; i++) {
+        if (Number(days[i][0]) === targetDay) {
+            r = days[i];
+            break;
+        }
+    }
+    if (!r) {
+        document.getElementById("content").innerHTML =
+            '<div style="text-align:center;padding:20px;color:var(--warning);font-weight:bold;">No data found for this date.</div>';
+        return;
+    }
+
+    // -------------------------------------------------
+    // PERSONAL SETTINGS
+    // -------------------------------------------------
+    const offset = Number(personalSettings.locationOffset) || 0;
+    const subheSadiq =  adjustTime(r[1], -offset);
+    const fajrStart =  adjustTime(r[2], -offset);
+    const fajrAzaan =  r[3];
+    const fajrJamaat =  r[4];
+    const sunrise =  adjustTime(r[5], -offset);
+    const zawaal =  r[6];
+    const zohrStart =  r[7];
+    const zohrAzaan =  "---";
+    const zohrJamaat =  "13:00";
+    let asrStart =  adjustTime(r[8], -offset);
+    if (personalSettings.asrMethod === ASR_METHOD.SHAAFII) {
+        asrStart = adjustTime(asrStart, -60);    }
+    const asrAzaan = r[9];
+    const asrJamaat = r[10];
+    const sunset = adjustTime(r[11], offset);
+    const maghribStart = adjustTime(r[12], offset);
+    const maghribAzaan = "---";
+    const maghribJamaat = "---";
+    const eshaStart = adjustTime(r[13], offset);
+    const eshaAzaan = r[14];
+    const eshaJamaat = r[15];
+    // -------------------------------------------------
+    // HTML
+    // -------------------------------------------------
+    const tripleRow = (name, sub, start, azaan, jamaat) => `
+        <div class="prayer-row raised">
+            <div class="n-stack">
+                <span class="p-sub">${sub}</span>
+                <span class="p-name">${name}</span>
+            </div>
+            <div class="t-box">
+                <span class="lbl">Start</span>
+                <span class="tim">${start}</span>
+            </div>
+            <div class="t-box">
+                <span class="lbl">Azaan</span>
+                <span class="tim">${azaan}</span>
+            </div>
+            <div class="t-box">
+                <span class="lbl">Jamaat</span>
+                <span class="tim">${jamaat}</span>
+            </div>
+        </div>`;
+    const singleRow = (name, sub, time, sun = false) => `
+        <div class="prayer-row ${sun ? "sunken" : "raised"} single">
+            <div class="n-stack">
+                <span class="p-sub">${sub}</span>
+                <span class="p-name">${name}</span>
+            </div>
+            <div class="t-box">
+                <span class="tim">${time}</span>
+            </div>
+        </div>`;
+
+    let h = "";
+h += singleRow(    "Subhe Sadiq",    "Tahajjud End",    subheSadiq);
+h += tripleRow(    "Fajr",    "Morning Prayer",    fajrStart,    fajrAzaan,    fajrJamaat);
+h += singleRow(    "Sunrise",    "Prohibited",    sunrise,    true);
+h += singleRow(    "Zawaal",    "Prohibited",    zawaal,    true);
+h += tripleRow(    "Zohr",    "Midday Prayer",    zohrStart,    zohrAzaan,    zohrJamaat);
+h += tripleRow(    "Assr",    "Afternoon Prayer",    asrStart,    asrAzaan,    asrJamaat);
+h += singleRow(    "Sunset",    "Prohibited",    sunset,    true);
+h += tripleRow(    "Maghrib",    "Evening Prayer",    maghribStart,    maghribAzaan,    maghribJamaat);
+h += tripleRow(    "Esha",      "Night Prayer",    eshaStart,   eshaAzaan,   eshaJamaat);
+ 
+  h += `
+    <div class="prayer-row raised" style="margin-top: 30px; background: #fff; border-left: 6px solid var(--primary); grid-template-columns: 1fr 1fr;">
+      <div class="n-stack">
+        <span class="p-sub">Calculated From</span>
+        <span class="p-name">Moon Sighted Date</span>
+      </div>
+      <div class="t-box" style="text-align: right; padding-right: 15px; justify-content: center;">
+        <span class="tim" style="font-size: 1rem; color: var(--primary);">${d.sightDate || 'N/A'}</span>
+      </div>
+    </div>
+  `;
+
+  if (d.events && d.events.length > 0) {
+    h += `<div style="margin-top: 20px; padding: 18px; background: white; border-radius: 20px; box-shadow: 4px 4px 10px var(--shadow-dark);">`;
+    h += `<div style="font-size: 0.7rem; color: var(--primary); font-weight: 900; text-transform: uppercase; border-bottom: 2px solid var(--bg); margin-bottom: 12px; padding-bottom: 5px;">IMPORTANT DATES in ${d.hijriMonth}</div>`;
+    d.events.forEach(ev => {
+      h += `<div style="display: flex; gap: 12px; padding: 10px 0; border-bottom: 1px solid #f2f7f7; font-size: 0.8rem;">
+          <span style="font-weight: 900; color: var(--primary);">${ev.day}</span>
+          <span>${ev.detail}</span>
+        </div>`;
+    });
+    h += `</div>`;
+  }
+  document.getElementById('content').innerHTML = h;
+}
+function openSettings(){
+    window.location.href="settings.html";
+}
+
+function openLocation(){
+  //  window.location.href="location.html";
+   showDialog("🚧", "Coming Soon", "This feature is currently under development.\n\nIn shaa Allah it will be available in a future update." );
+}
+
+function openTheme(){
+ //   window.location.href="theme.html";
+   showDialog("🚧", "Coming Soon", "This feature is currently under development.\n\nIn shaa Allah it will be available in a future update." );
+}
+
+function openMosqueInfo(){
+ //   window.location.href="mosque.html";
+   showDialog("🚧", "Coming Soon", "This feature is currently under development.\n\nIn shaa Allah it will be available in a future update." );
+}
+
+function openNotifications(){
+ //   window.location.href="notifications.html";
+  showDialog("🚧", "Coming Soon", "This feature is currently under development.\n\nIn shaa Allah it will be available in a future update." );
+}
+
+function openAbout(){
+  //  window.location.href="about.html";
+  showDialog("🚧", "Coming Soon", "This feature is currently under development.\n\nIn shaa Allah it will be available in a future update." );
+}
+      
+function updatePrayerSettingsDialog(){
+  if(!tempPrayerSettings) return;
+  document.getElementById("offsetValue").innerText =
+      tempPrayerSettings.locationOffset + " min";
+  document.getElementById("asrMethodSelect").value =
+      tempPrayerSettings.asrMethod;
+  const summary =
+      document.getElementById("settingsSummary");
+  if(
+      tempPrayerSettings.locationOffset !==0 ||
+      tempPrayerSettings.asrMethod !== ASR_METHOD.HANAFI
+  ){
+     summary.innerHTML = `
+      <b>ℹ Preview Changes</b><br><br>
+      Location Offset :
+      ${tempPrayerSettings.locationOffset} min
+      <br>
+      Asr Method :
+      ${
+        tempPrayerSettings.asrMethod === ASR_METHOD.HANAFI
+        ?
+        "Hanafi"
+        :
+        "Shaafi' / Hanbali"
+      }
+      `;
+  }
+  else{
+      summary.innerHTML =
+      "<b>✓ Official Jummah Masjid's Timetable</b>";
+  }
+  }
+
+
+function setAsrMethod(method){
+    personalSettings.asrMethod=method;
+    savePersonalSettings(personalSettings);
+    updatePrayerSettingsDialog();
+    refreshPrayerView();
+}
+
+function resetPersonalSettings(){
+    personalSettings.locationOffset=0;
+    personalSettings.asrMethod=ASR_METHOD.HANAFI;
+    savePersonalSettings(personalSettings);
+    updatePrayerSettingsDialog();
+    refreshPrayerView();
+}
+// =====================================================
+// HIJRI ARCHIVES
+// =====================================================
+
+let hijriArchiveData = null;
+let showingOriginalYears = false;
+
+
+async function showYearCalendar() {
+    const modal = document.getElementById("hijriArchiveModal");
+
+    modal.style.display = "flex";
+    document.getElementById("archiveContent").innerHTML = `
+        <div class="archiveLoader">
+            Loading Hijri Archives...
+        </div>
+    `;
+
+    if (!hijriArchiveData) {
+        try {
+            const response =
+                await fetch(`${API_URL}?action=getYears`);
+
+            const result = await response.json();
+
+            if (!result.success) {
+                throw new Error(result.error || "Unable to load archive.");
+            }
+
+            hijriArchiveData = result.data;
+
+            buildArchiveYearSelector();
+
+        } catch (err) {
+
+            console.error("Hijri archive error:", err);
+
+            document.getElementById("archiveContent").innerHTML = `
+                <div class="archiveLoader">
+                    Unable to load Hijri Archives.
+                    <br><br>
+                    Please check your connection.
+                </div>
+            `;
+
+            return;
+        }
+
+    } else {
+        buildArchiveYearSelector();
+    }
+    showingOriginalYears = false;
+}
+
+function buildArchiveYearSelector() {
+    const select =
+        document.getElementById("archiveYearSelect");
+
+    select.innerHTML = "";
+
+    /*
+       Row 0 = title
+       Row 1 = headings
+       Row 2+ = years
+    */
+
+    for (let i = 2; i < hijriArchiveData.length; i++) {
+
+        const row = hijriArchiveData[i];
+
+        if (!row[0]) continue;
+
+        const option = document.createElement("option");
+
+        option.value = i;
+        option.textContent = row[0];
+
+        select.appendChild(option);
+    }
+
+    if (select.options.length > 0) {
+
+        /*
+           Default to the latest available Hijri year
+        */
+
+        select.selectedIndex =
+            select.options.length - 1;
+
+        displayArchiveYear(
+            select.value
+        );
+    }
+}
+
+
+function displayArchiveYear(rowIndex) {
+
+    if (!hijriArchiveData) return;
+
+    const row =
+        hijriArchiveData[Number(rowIndex)];
+
+    if (!row) return;
+
+    let html = "";
+
+    /*
+       Columns:
+       0 = Year
+       1 = Muharram date
+       2 = Muharram days
+       3 = Safar date
+       4 = Safar days
+       ...
+    */
+
+    for (let col = 1; col < row.length; col += 2) {
+
+        const monthHeading =
+            hijriArchiveData[1][col];
+
+        const monthDate =
+            row[col];
+
+        if (!monthHeading || !monthDate) continue;
+
+        html += `
+            <div class="archiveMonthRow">
+
+                <span class="archiveMonthName">
+                    ${monthHeading}
+                </span>
+
+                <span class="archiveMonthDate">
+                    ${monthDate}
+                </span>
+
+            </div>
+        `;
+    }
+
+    document.getElementById("archiveContent").innerHTML =
+        html || `
+            <div class="archiveLoader">
+                No archive data available.
+            </div>
+        `;
+}
+
+
+function toggleOriginalYearsView() {
+
+    if (!hijriArchiveData) return;
+
+    const content =
+        document.getElementById("archiveContent");
+
+    if (!showingOriginalYears) {
+
+        let html = `
+            <div class="archiveOriginal">
+                <table>
+                    <tbody>
+        `;
+
+        hijriArchiveData.forEach((row, rowIndex) => {
+
+            html += "<tr>";
+
+            row.forEach((cell) => {
+
+                if (rowIndex < 2) {
+                    html += `<th>${cell || ""}</th>`;
+                } else {
+                    html += `<td>${cell || ""}</td>`;
+                }
+
+            });
+
+            html += "</tr>";
+
+        });
+
+        html += `
+                    </tbody>
+                </table>
+            </div>
+        `;
+
+        content.innerHTML = html;
+
+        showingOriginalYears = true;
+
+    } else {
+
+        const select =
+            document.getElementById("archiveYearSelect");
+
+        displayArchiveYear(select.value);
+
+        showingOriginalYears = false;
+    }
+}
+
+
+function closeHijriArchives() {
+
+    document.getElementById(
+        "hijriArchiveModal"
+    ).style.display = "none";
+
+}
 
