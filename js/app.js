@@ -259,19 +259,6 @@ function refreshPrayerView() {
     renderDayData(yearData, targetDate);
     updatePersonalBanner();
 }
-      
-function onOffsetChange(value) {
-    personalSettings.locationOffset = Number(value);
-    savePersonalSettings(personalSettings);
-    refreshPrayerView();
-}
-
-function onAsrMethodChange(value) {
-    personalSettings.asrMethod = value;
-    savePersonalSettings(personalSettings);
-    refreshPrayerView();
-}
-
 
 function changeTempOffset(step){
     if(!tempPrayerSettings) return;
@@ -744,9 +731,6 @@ h += tripleRow(    "Esha",      "Night Prayer",    eshaStart,   eshaAzaan,   esh
   }
   document.getElementById('content').innerHTML = h;
 }
-function openSettings(){
-    window.location.href="settings.html";
-}
 
 function openLocation(){
   //  window.location.href="location.html";
@@ -806,21 +790,6 @@ function updatePrayerSettingsDialog(){
   }
   }
 
-
-function setAsrMethod(method){
-    personalSettings.asrMethod=method;
-    savePersonalSettings(personalSettings);
-    updatePrayerSettingsDialog();
-    refreshPrayerView();
-}
-
-function resetPersonalSettings(){
-    personalSettings.locationOffset=0;
-    personalSettings.asrMethod=ASR_METHOD.HANAFI;
-    savePersonalSettings(personalSettings);
-    updatePrayerSettingsDialog();
-    refreshPrayerView();
-}
 // =====================================================
 // HIJRI ARCHIVES
 // =====================================================
