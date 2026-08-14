@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Namaz MRU">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="css/style.css">
+    
+  </head>
+        <!-- Reusable App Dialog -->
+        <div id="appDialog" class="dialog-overlay" onclick="closeDialog(event)">
+          <div class="dialog-box" onclick="event.stopPropagation()">
+            <div id="dialogIcon" class="dialog-icon">ℹ️</div>
+            <div id="dialogTitle" class="dialog-title">
+              Information
+            </div>
+            <div id="dialogMessage" class="dialog-message">
+              Message
+            </div>
+            <button class="dialog-btn" onclick="closeDialog()">
+              OK
+            </button>
+          </div>
+        </div>
+ 
+  <!-- =====================================================
+     HIJRI ARCHIVES MODAL
+     ===================================================== -->
+
+<div id="hijriArchiveModal" class="archiveOverlay" style="display:none;">
+    <div class="archiveCard">
+        <div class="archiveHeader">
+            <h2>Hijri Archives</h2>
+            <button onclick="closeHijriArchives()">✕</button>
+        </div>
+        <div class="archiveControls">
+            <label for="archiveYearSelect">
+                Select Hijri Year
+            </label>
+            <select id="archiveYearSelect"
+                    onchange="displayArchiveYear(this.value)">
+            </select>
+        </div>
+        <div id="archiveContent" class="archiveContent">
+            <div class="archiveLoader">
+                Loading archives...
+            </div>
+        </div>
+        <div class="archiveButtons">
+            <button onclick="toggleOriginalYearsView()">
+                📋 Original Years View
+            </button>
+            <button onclick="closeHijriArchives()">
+                CLOSE
+            </button>
+        </div>
+    </div>
+</div>
+  
+  
+  <body>
+    <div class="container">
+      <div class="header-block">
+          <h1>Prayer Dashboard For Mauritius</h1>
+          <div class="top-banner">
+            <div class="info-unit" style="flex: 1;">
+              <span class="label-st">Today's Date</span>
+              <div id="live-g" class="val-st">-- --- ----</div>
+            </div>
+            <div class="info-unit" style="flex: 1.2; border-left: 1px solid var(--shadow-dark); padding-left: 15px;">
+              <span class="label-st">Islamic Date</span>
+              <div id="isl-hero" class="isl-val">-- --- ----</div>
+            </div>
+          </div>
+    
+          <div class="action-row">
+            <div id="full-clock">00:00:00</div>
+            <div class="search-box">
+              <div id="search-lbl"></div>
+              <div class="input-wrap">
+                <input type="date" id="datePicker" onchange="handleDateChange()">
+                <button id="todayBtn" class="btn btn-today" onclick="resetToToday()"><i class="fas fa-calendar-day"></i></button>
+              </div>
+            </div>
+          </div>
+        </div>
+      
+      <div id="loader" class="loader" style="display:none;"></div>
+        <div id="content"></div>
+              <div id="personalBanner" 
+               style="
+               display:none;  margin:15px 0;   padding:12px;  border-radius:15px;  background:white; box-shadow:3px 3px 8px rgba(0,0,0,.15);
+               font-size:.75rem;             color:var(--primary);             text-align:center;             ">
+              </div>
+  
+        <div class="button-row">
+          <button class="menu-btn calendar-btn"
+            onclick="showYearCalendar()">
+            <i class="fas fa-calendar-alt"></i><br>
+            Hijri Archives  Since    1446/2024(Jul)
+          </button>
+        
+          <button class="menu-btn about-btn"
+                  onclick="toggleModal(true)">
+            <i class="fas fa-circle-info"></i><br>
+            Disclaimer & Privacy
+          </button>
+        </div>
+        
+        <div class="footer">
+          <div id="lastUpd" class="update-txt">Ready</div>
+        </div>
+    </div>
+
+    <div id="m" style="display:none; position:fixed; z-index:2000; left:0; top:0; width:100%; height:100%; background:rgba(0,0,0,0.5); align-items:center; justify-content:center;" onclick="toggleModal(false)">
+      <div style="background:white; padding:25px; border-radius:20px; width:80%; max-width:350px;" onclick="event.stopPropagation()">
+        <h3 style="margin-top:0; color:var(--primary); font-size:0.9rem;">DISCLAIMER</h3>
+        <p style="font-size:0.7rem; line-height:1.4; color:#444;">Accuracy: Times are based on available data for Mauritius from the Jummah Mosque.<br><br><br>Once installed, the App will have the whole year Namaz times saved <br><br><br>Use the Prayer Time Settings to adjust to your appropriate altitude and Madhab (for Asr)<br><br>Please verify with your local Masjid for official Jamaat times.<br><br>- This app has been designed in good faith and I am the sole responsible for any discrepancies.<br><br>- Islamic month and moon sighted date are being updated manually. Please inform me if you encounter any discrepancies<br><br> Email: m.nirshad@gmail.com<br><br> © 2026 Prayer Dashboard Mauritius</p>
+        <button onclick="toggleModal(false)" style="width:100%; padding:10px; background:var(--primary); color:white; border:none; border-radius:10px; font-weight:800;">CLOSE</button>
+      </div>
+    </div>
+
+<script src="js/app.js"></script>
+    
+    <div id="adminTouchArea"></div>
+
+    <!-- Floating Control Hub Button -->
+        <button id="controlHubBtn" title="Control Hub">
+            ⚙️
+        </button>
+        <!-- Control Hub Menu -->
+        <div id="controlHubMenu" class="hidden">
+            <div class="hubItem" onclick="openPrayerSettings(); closeControlHub();">
+                ⚙️ Prayer Time Settings
+            </div>
+            <div class="hubItem" onclick="openLocation()">
+                📍 Location
+            </div>
+            <div class="hubItem" onclick="openTheme()">
+                🌙 Theme
+            </div>
+            <div class="hubItem" onclick="openMosqueInfo()">
+                🕌 Mosque Information
+            </div>
+            <div class="hubItem" onclick="openNotifications()">
+                🔔 Notifications
+            </div>
+            <div class="hubItem" onclick="openAbout()">
+                ℹ️ About
+            </div>
+            <div class="hubSeparator"></div>
+              <div class="hubVersion">      
+                  Namaz Time 
+                  <br>
+                 Version V80.1 Thu 13 Aug 26
+              </div>          
+        </div>
+    
+    
+<!-- Prayer Time Settings Modal -->
+<div id="prayerSettingsModal" class="modalOverlay" style="display:none;">
+    <div class="modalCard">
+
+        <h2>Prayer Time Adjustments</h2>
+        <hr>
+        <div class="settingRow">
+            <span>Location Offset</span>
+            <div class="offsetBox">
+                <button onclick="changeTempOffset(-1)">
+                    −
+                </button>
+                <span id="offsetValue">
+                    0 min
+                </span>
+                <button onclick="changeTempOffset(1)">
+                    +
+                </button>
+            </div>
+        </div>
+        <hr>
+        <div class="settingRow">
+            <span>Asr Calculation Method</span>
+            <select id="asrMethodSelect"
+                    onchange="changeTempAsr(this.value)">
+                <option value="hanafi">
+                    Hanafi (Default)
+                </option>
+                <option value="shaafii">
+                    Shaafi' / Hanbali
+                </option>
+            </select>
+        </div>
+        <hr>
+        <div id="settingsSummary"></div>
+        <hr>
+        <div class="buttonRow">
+            <button onclick="resetTempSettings()">
+                Reset
+            </button>
+            <button onclick="savePrayerSettings()">
+                Save
+            </button>
+            <button onclick="closePrayerSettings()">
+                Close
+            </button>
+        </div>
+    </div>
+</div>
+    
+   
+    
+  </body>
+</html>
