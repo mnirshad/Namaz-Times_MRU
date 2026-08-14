@@ -1,11 +1,8 @@
       // REPLACE THIS STRING WITH YOUR DEPLOYED APPS SCRIPT WEB APP URL
       const API_URL = "https://script.google.com/macros/s/AKfycbznuarW_UGUZyZKuapdjhtSlIkC1ut71CfsOq0h1XvGmG02R6vaZB_Vf9JXFkD3xaosVw/exec";
-        
-      
       const USE_YEAR_CACHE = true;
       const YEAR_CACHE_KEY = "prayerCache_year";
-//      const CACHE_MAX_AGE = 24 * 60 * 60 * 1000; // 24 hours
-      
+
       let yearData = null;
 
       const ASR_METHOD = {
@@ -396,42 +393,6 @@ function resetToToday() {
   document.getElementById('datePicker').valueAsDate = new Date();
   handleDateChange();
 }
-
-/*    
-      async function fetchWholeYear() {
-   
-        const cache = localStorage.getItem(YEAR_CACHE_KEY);
-        if (cache) {
-          const parsed = JSON.parse(cache);
-          if ((Date.now() - parsed.lastSync) < CACHE_MAX_AGE) {
-            if (!localStorage.getItem("hijriAnchorGregorian")) {
-                localStorage.setItem(
-                    "hijriAnchorGregorian",
-                    getLocalDateString()
-                );
-                localStorage.setItem(
-                    "hijriAnchorString",
-                    parsed.data.hijri
-                );
-            }
-            console.log("Using whole-year cache");
-            return parsed.data;
-          }
-        }
-        console.log("Downloading whole year");
-        const response = await fetch(`${API_URL}?year=true`);
-        const data = await response.json();
-             
-        localStorage.setItem(
-          YEAR_CACHE_KEY,
-          JSON.stringify({
-            lastSync: Date.now(),
-            data: data
-          })
-        );
-        return data;
-      }
-*/
 
 async function fetchWholeYear() {
     const cache = localStorage.getItem(YEAR_CACHE_KEY);
