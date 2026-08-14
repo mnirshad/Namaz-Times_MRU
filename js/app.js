@@ -40,9 +40,6 @@
                 hubMenu.classList.remove("show");
                 hubButton.classList.remove("open");
             });
-//          document.addEventListener("click", function(){
-//             hubMenu.classList.add("hidden");
-//             });
             hubMenu.addEventListener("click", function(e){
               e.stopPropagation();
              });
@@ -54,7 +51,6 @@
           );
           
         } else {
-//          fetchData();
         } 
         
         // Automatically registers the background service worker script
@@ -63,10 +59,8 @@
               .then((registration) => {
                   console.log("Service Worker registered successfully!");
                   // Ask the browser to check for a newer SW
-                  registration.update();
-                  
+                  registration.update();                  
                 let refreshing = false;
-
                   navigator.serviceWorker.addEventListener('controllerchange', () => {
                       if (!refreshing) {
                           console.log("New Service Worker has taken control. Reloading...");
@@ -118,7 +112,6 @@ function closeDialog(e){
     if(e.key === "Escape"){ closeDialog(); }
 
 });
-
       
 function adjustInterval(start, end, offsetMinutes) {
     return {
@@ -244,12 +237,6 @@ function resetTempSettings(){
     updatePrayerSettingsDialog();
 }
 
-//function refreshPrayerView(){
-//    const d = getCurrentDayData();
-//    renderPrayerUI(d);
-//    updatePersonalBanner();
-//}
-
 function refreshPrayerView() {
     const picker = document.getElementById("datePicker");
     const targetDate =
@@ -278,12 +265,8 @@ function changeTempAsr(value){
 
 function openPrayerSettings(){
     closeControlHub();
-    tempPrayerSettings = {
-        locationOffset:
-            personalSettings.locationOffset,
-        asrMethod:
-            personalSettings.asrMethod
-    };
+    tempPrayerSettings = {locationOffset: personalSettings.locationOffset,
+        asrMethod: personalSettings.asrMethod };
     document.getElementById("prayerSettingsModal")
         .style.display="flex";
     updatePrayerSettingsDialog();
@@ -292,20 +275,13 @@ function openPrayerSettings(){
       
 function savePrayerSettings(){
     if(!tempPrayerSettings) return;
-    personalSettings = {
-        locationOffset:
-            tempPrayerSettings.locationOffset,
-        asrMethod:
-            tempPrayerSettings.asrMethod
-    };
+    personalSettings = {locationOffset: tempPrayerSettings.locationOffset,
+        asrMethod: tempPrayerSettings.asrMethod };
     savePersonalSettings(personalSettings);
     refreshPrayerView();
     updatePersonalBanner();
     closePrayerSettings();
-    console.log(
-        "Prayer settings saved",
-        personalSettings
-    );
+    console.log("Prayer settings saved", personalSettings );
 }
       
 function closePrayerSettings(){
@@ -324,11 +300,9 @@ function closeControlHub(){
         btn.classList.remove("open");
     }
 }
-    
    
 function getLocalDateString() {
   const now = new Date();
-
   const year = now.getFullYear();
   const month = String(now.getMonth() + 1).padStart(2, '0');
   const day = String(now.getDate()).padStart(2, '0');
@@ -351,12 +325,10 @@ function handleDateChange() {
     btn.classList.remove('active');
     document.getElementById('search-lbl').innerText = "";
   }
-//        fetchData();
   renderDayData(
       yearData,
       new Date(p.value+'T00:00:00')
   );
-
 }
       
 function toggleModal(show) {
@@ -389,8 +361,7 @@ async function fetchWholeYear() {
             localStorage.setItem("hijriAnchorGregorian", getLocalDateString() );
             localStorage.setItem("hijriAnchorString", parsed.data.hijri ); }
         console.log("Using whole-year cache");
-        return parsed.data;
-    }
+        return parsed.data;    }
     console.log("Downloading whole year");
     const response = await fetch(`${API_URL}?year=true`);
     const data = await response.json();
@@ -424,25 +395,12 @@ async function checkForUpdates() {
                 console.log("New data detected. Updating cache...");
             
                 // Save new year cache
-                localStorage.setItem(
-                    YEAR_CACHE_KEY,
-                    JSON.stringify({
-                        lastSync: Date.now(),
-                        data: latest
+                localStorage.setItem( YEAR_CACHE_KEY, JSON.stringify({ lastSync: Date.now(), data: latest
                     })
-                );
-            
+                );            
                 // 🔥 IMPORTANT: reset Hijri anchor to the new official date
-                localStorage.setItem(
-                    "hijriAnchorGregorian",
-                    getLocalDateString()
-                );
-            
-                localStorage.setItem(
-                    "hijriAnchorString",
-                    latest.hijri
-                );
-            
+                localStorage.setItem("hijriAnchorGregorian", getLocalDateString() );            
+                localStorage.setItem("hijriAnchorString", latest.hijri);            
                 // Update in-memory copy
                 yearData = latest;
             
@@ -459,101 +417,6 @@ async function checkForUpdates() {
       
       // Updated to handle standard fetch operations and record offline anchors
   
-    async function fetchData() {
-        const p = document.getElementById('datePicker').value;
-        const todayStr = getLocalDateString();
-        const targetDateObj = p ? new Date(p + 'T00:00:00') : new Date();
-        const mIndex = targetDateObj.getMonth();
-        const year = targetDateObj.getFullYear();
-        const targetDay = targetDateObj.getDate();
-        
-        const cacheKey = "prayerCache_" + year + "_" + mIndex;
-        const cachedData = localStorage.getItem(cacheKey);
-
-        const requestUrl = p ? `${API_URL}?date=${p}` : API_URL;
-
-        if (cachedData) {
-          // 1. LOAD INSTANTLY FROM PHONE MEMORY
-          const parsed = JSON.parse(cachedData);
-          renderDayData(parsed, targetDay);
-          
-          // 2. SILENT REFRESH (Background updates current month, then pre-fetches next month)
-          if (navigator.onLine) {
-            try {
-              const response = await fetch(requestUrl);
-              const data = await response.json();
-              if (data.success) {
-                // 🔐 ANCHOR CAPTURE: Save the ground truth if fetching today's real live data
-                if (!p || p === todayStr) {
-                  localStorage.setItem("hijriAnchorGregorian", todayStr);
-                  localStorage.setItem("hijriAnchorString", data.hijri);
-                }
-
-                localStorage.setItem("prayerCache_" + year + "_" + data.monthIndex, JSON.stringify(data));
-                renderDayData(data, targetDay);
-                
-                // Trigger look-ahead pre-fetch for the next month
-//                preFetchNextMonth(targetDateObj);
-              }
-            } catch (err) {
-              console.warn("Background refresh skipped: offline or API unreachable.", err);
-            }
-          }
-        } else {
-          // 3. NOT IN MEMORY - SHOW SPINNER AND FETCH
-          document.getElementById('content').innerHTML = '';
-          document.getElementById('loader').style.display = 'block';
-          
-          try {
-            const response = await fetch(requestUrl);
-            const data = await response.json();
-            if (data.success) {
-              // 🔐 ANCHOR CAPTURE: Save the ground truth if fetching today's real live data
-              if (!p || p === todayStr) {
-                localStorage.setItem("hijriAnchorGregorian", todayStr);
-                localStorage.setItem("hijriAnchorString", data.hijri);
-              }
-
-              localStorage.setItem("prayerCache_" + year + "_" + data.monthIndex, JSON.stringify(data));
-              renderDayData(data, targetDay);
-              
-              // Trigger look-ahead pre-fetch for the next month
-//              preFetchNextMonth(targetDateObj);
-            } else {
-              throw new Error(data.error || "Unknown database error");
-            }
-          } catch (err) {
-            document.getElementById('loader').style.display = 'none';
-            document.getElementById('content').innerHTML = `
-              <div style="text-align:center; padding: 20px; color: var(--warning); font-weight:bold;">
-                Failed to sync live data.<br><span style="font-size:0.75rem; font-weight:normal;">Please check your connection.</span>
-              </div>`;
-            console.error(err);
-          }
-        }
-      }
-
-function preFetchNextMonth(currentDateObj) {
-  if (!navigator.onLine) return;
-
-  const nextMonthObj = new Date(currentDateObj.getFullYear(), currentDateObj.getMonth() + 1, 1);
-  const nextYear = nextMonthObj.getFullYear();
-  const nextMIndex = nextMonthObj.getMonth();
-  
-  const nextMonthStr = `${nextYear}-${String(nextMIndex + 1).padStart(2, '0')}-01`;
-  const nextRequestUrl = `${API_URL}?date=${nextMonthStr}`;
-
-  fetch(nextRequestUrl)
-    .then(res => res.json())
-    .then(data => {
-      if (data.success) {
-        localStorage.setItem("prayerCache_" + nextYear + "_" + data.monthIndex, JSON.stringify(data));
-        console.log(`Look-ahead cache successful for month index: ${data.monthIndex}`);
-      }
-    })
-    .catch(err => console.warn("Silent pre-fetch failed (likely offline):", err));
-}
-
 function adjustTime(timeStr, offsetMinutes){
     if(!timeStr || timeStr==="---") return timeStr;
     // Handle intervals like 06.46-07.00
@@ -573,10 +436,8 @@ function adjustTime(timeStr, offsetMinutes){
     const h = Math.floor(mins/60);
     const m = mins%60;
 
-    return (
-        String(h).padStart(2,"0") + "." + String(m).padStart(2,"0") );
+    return (String(h).padStart(2,"0") + "." + String(m).padStart(2,"0") );
 }
-
 
 function renderDayData(d = yearData, targetDateObj = new Date()) {
     document.getElementById("loader").style.display = "none";
@@ -612,14 +473,7 @@ function renderDayData(d = yearData, targetDateObj = new Date()) {
     }
     document.getElementById("isl-hero").innerText = calculatedHijri;
     document.getElementById("lastUpd").innerText =
-        "Last Sync: " +
-        new Date().toLocaleTimeString(
-            "en-GB",
-            {
-                hour: "2-digit",
-                minute: "2-digit"
-            }
-        );
+        "Last Sync: " + new Date().toLocaleTimeString( "en-GB", {hour: "2-digit", minute: "2-digit"} );
     // -------------------------------------------------
     // FIND TODAY
     // -------------------------------------------------
@@ -765,10 +619,8 @@ function updatePrayerSettingsDialog(){
       tempPrayerSettings.asrMethod;
   const summary =
       document.getElementById("settingsSummary");
-  if(
-      tempPrayerSettings.locationOffset !==0 ||
-      tempPrayerSettings.asrMethod !== ASR_METHOD.HANAFI
-  ){
+  if(tempPrayerSettings.locationOffset !==0 || tempPrayerSettings.asrMethod !== ASR_METHOD.HANAFI )
+  {
      summary.innerHTML = `
       <b>ℹ Preview Changes</b><br><br>
       Location Offset :
@@ -793,14 +645,11 @@ function updatePrayerSettingsDialog(){
 // =====================================================
 // HIJRI ARCHIVES
 // =====================================================
-
 let hijriArchiveData = null;
 let showingOriginalYears = false;
 
-
 async function showYearCalendar() {
     const modal = document.getElementById("hijriArchiveModal");
-
     modal.style.display = "flex";
     document.getElementById("archiveContent").innerHTML = `
         <div class="archiveLoader">
@@ -812,21 +661,14 @@ async function showYearCalendar() {
         try {
             const response =
                 await fetch(`${API_URL}?action=getYears`);
-
             const result = await response.json();
-
             if (!result.success) {
                 throw new Error(result.error || "Unable to load archive.");
             }
-
             hijriArchiveData = result.data;
-
             buildArchiveYearSelector();
-
         } catch (err) {
-
             console.error("Hijri archive error:", err);
-
             document.getElementById("archiveContent").innerHTML = `
                 <div class="archiveLoader">
                     Unable to load Hijri Archives.
@@ -845,56 +687,40 @@ async function showYearCalendar() {
 }
 
 function buildArchiveYearSelector() {
-    const select =
-        document.getElementById("archiveYearSelect");
-
+    const select = document.getElementById("archiveYearSelect");
     select.innerHTML = "";
-
     /*
        Row 0 = title
        Row 1 = headings
        Row 2+ = years
     */
-
     for (let i = 2; i < hijriArchiveData.length; i++) {
-
         const row = hijriArchiveData[i];
-
         if (!row[0]) continue;
 
         const option = document.createElement("option");
-
         option.value = i;
         option.textContent = row[0];
-
         select.appendChild(option);
     }
 
     if (select.options.length > 0) {
-
         /*
            Default to the latest available Hijri year
         */
 
         select.selectedIndex =
             select.options.length - 1;
-
         displayArchiveYear(
             select.value
         );
     }
 }
 
-
 function displayArchiveYear(rowIndex) {
-
     if (!hijriArchiveData) return;
-
-    const row =
-        hijriArchiveData[Number(rowIndex)];
-
+    const row = hijriArchiveData[Number(rowIndex)];
     if (!row) return;
-
     let html = "";
 
     /*
@@ -908,26 +734,17 @@ function displayArchiveYear(rowIndex) {
     */
 
     for (let col = 1; col < row.length; col += 2) {
-
-        const monthHeading =
-            hijriArchiveData[1][col];
-
-        const monthDate =
-            row[col];
-
+        const monthHeading = hijriArchiveData[1][col];
+        const monthDate = row[col];
         if (!monthHeading || !monthDate) continue;
-
         html += `
             <div class="archiveMonthRow">
-
                 <span class="archiveMonthName">
                     ${monthHeading}
                 </span>
-
                 <span class="archiveMonthDate">
                     ${monthDate}
                 </span>
-
             </div>
         `;
     }
@@ -942,65 +759,43 @@ function displayArchiveYear(rowIndex) {
 
 
 function toggleOriginalYearsView() {
-
     if (!hijriArchiveData) return;
-
     const content =
         document.getElementById("archiveContent");
-
     if (!showingOriginalYears) {
-
         let html = `
             <div class="archiveOriginal">
                 <table>
                     <tbody>
         `;
-
         hijriArchiveData.forEach((row, rowIndex) => {
-
             html += "<tr>";
-
             row.forEach((cell) => {
-
                 if (rowIndex < 2) {
                     html += `<th>${cell || ""}</th>`;
                 } else {
                     html += `<td>${cell || ""}</td>`;
                 }
-
             });
-
             html += "</tr>";
-
         });
-
         html += `
                     </tbody>
                 </table>
             </div>
         `;
-
         content.innerHTML = html;
-
         showingOriginalYears = true;
-
     } else {
-
-        const select =
-            document.getElementById("archiveYearSelect");
-
+        const select = document.getElementById("archiveYearSelect");
         displayArchiveYear(select.value);
-
         showingOriginalYears = false;
     }
 }
 
-
 function closeHijriArchives() {
-
     document.getElementById(
         "hijriArchiveModal"
     ).style.display = "none";
-
 }
 
