@@ -1,9 +1,18 @@
 
-const CACHE_NAME = `namaz-times-V80.3`;
+const CACHE_NAME = `namaz-times-V80.4`;
+/*
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
   './manifest.json'
+];
+*/
+const ASSETS_TO_CACHE = [
+  './',
+  './index.html',
+  './manifest.json',
+  './css/style.css',
+  './js/app.js'
 ];
 
 // 1. Install Event: Saves the core app shell files into phone memory
