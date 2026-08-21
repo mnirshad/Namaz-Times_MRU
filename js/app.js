@@ -656,7 +656,66 @@ async function showYearCalendar() {
             Loading Hijri Archives...
         </div>
     `;
-
+      if (!hijriArchiveData) {
+      
+          // First try persistent offline storage
+          const cachedArchive = localStorage.getItem(ARCHIVE_CACHE_KEY);
+      
+          if (cachedArchive) {
+              try {
+                  hijriArchiveData = JSON.parse(cachedArchive);
+                  buildArchiveYearSelector();
+              } catch (err) {
+                  console.warn("Invalid archive cache. Removing it.");
+                  localStorage.removeItem(ARCHIVE_CACHE_KEY);
+              }
+          }
+      
+          // Nothing cached — fetch from backend
+          if (!hijriArchiveData) {
+              try {
+                  const response =
+                      await fetch(`${API_URL}?action=getYears`);
+      
+                  const result = await response.json();
+      
+                  if (!result.success) {
+                      throw new Error(
+                          result.error || "Unable to load archive."
+                      );
+                  }
+      
+                  hijriArchiveData = result.data;
+      
+                  // Save archive permanently for offline use
+                  localStorage.setItem(
+                      ARCHIVE_CACHE_KEY,
+                      JSON.stringify(hijriArchiveData)
+                  );
+      
+                  buildArchiveYearSelector();
+      
+              } catch (err) {
+                  console.error("Hijri archive error:", err);
+      
+                  document.getElementById("archiveContent").innerHTML = `
+                      <div class="archiveLoader">
+                          Unable to load Hijri Archives.
+                          <br><br>
+                          Please check your connection.
+                      </div>
+                  `;
+                  return;
+              }
+          }
+      } else {
+                buildArchiveYearSelector();
+            }
+      
+      showingOriginalYears = false;
+}
+            
+/*
     if (!hijriArchiveData) {
         try {
             const response =
@@ -685,6 +744,7 @@ async function showYearCalendar() {
     }
     showingOriginalYears = false;
 }
+*/
 
 function buildArchiveYearSelector() {
     const select = document.getElementById("archiveYearSelect");
