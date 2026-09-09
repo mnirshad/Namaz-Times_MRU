@@ -1,4 +1,4 @@
-      // REPLACE THIS STRING WITH YOUR DEPLOYED APPS SCRIPT WEB APP URL
+      // REPLACE THIS STRING WITH YOUR DEPLOYED APPS SCRIPT WEB APP URL // GoogleSheets: NamazTime_gthbPWA-2_project
       const API_URL = "https://script.google.com/macros/s/AKfycbznuarW_UGUZyZKuapdjhtSlIkC1ut71CfsOq0h1XvGmG02R6vaZB_Vf9JXFkD3xaosVw/exec";
       const USE_YEAR_CACHE = true;
       const YEAR_CACHE_KEY = "prayerCache_year";
