@@ -92,9 +92,13 @@
                     adminArea.addEventListener("touchstart", startPress);
                     adminArea.addEventListener("touchend", cancelPress);
                     adminArea.addEventListener("touchcancel", cancelPress);   }
-        setTimeout(() => {
+        
+      setTimeout(() => {
             checkForUpdates();
         }, 500);
+      setTimeout(() => {
+          refreshArchiveSilently();
+            }, 1000);   
        updatePersonalBanner();        
       };
 
@@ -747,6 +751,52 @@ async function showYearCalendar() {
 }
 */
 
+async function refreshArchiveSilently() {
+    try {
+        const response = await fetch(`${API_URL}?action=getYears`);
+        const result = await response.json();
+
+        if (!result.success) {
+            return;
+        }
+
+        const latestArchive = result.data;
+        const cachedArchive = localStorage.getItem(ARCHIVE_CACHE_KEY);
+
+        // No cached archive yet
+        if (!cachedArchive) {
+            localStorage.setItem(
+                ARCHIVE_CACHE_KEY,
+                JSON.stringify(latestArchive)
+            );
+
+            console.log("Hijri Archive cache created silently.");
+            return;
+        }
+
+        // Compare cached archive with backend archive
+        const cachedData = JSON.parse(cachedArchive);
+
+        if (JSON.stringify(cachedData) === JSON.stringify(latestArchive)) {
+            console.log("Hijri Archive is already up to date.");
+            return;
+        }
+
+        // New archive data detected
+        localStorage.setItem(
+            ARCHIVE_CACHE_KEY,
+            JSON.stringify(latestArchive)
+        );
+
+        // Keep the in-memory copy synchronized too
+        hijriArchiveData = latestArchive;
+
+        console.log("Hijri Archive silently updated.");
+    } catch (err) {
+        // Network unavailable → leave existing offline cache untouched
+        console.log("Hijri Archive background refresh skipped.");
+    }
+}
 function buildArchiveYearSelector() {
     const select = document.getElementById("archiveYearSelect");
     select.innerHTML = "";
