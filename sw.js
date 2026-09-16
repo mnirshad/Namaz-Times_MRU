@@ -1,5 +1,5 @@
 
-const CACHE_NAME = `namaz-times-V81.2`;
+const CACHE_NAME = `namaz-times-V81.3`;
 /*
 const ASSETS_TO_CACHE = [
   './',
