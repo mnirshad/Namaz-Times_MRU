@@ -46,10 +46,14 @@
              });
         if (USE_YEAR_CACHE) {
           yearData = await fetchWholeYear();
-          renderDayData(
-            yearData,
-            new Date()
-          );
+          renderDayData(yearData, new Date());
+
+            localStorage.setItem("hijriSettingsMarker", JSON.stringify({
+                moonSighted: yearData.sightDate,
+                hijriMonth: yearData.hijriMonth,
+                hijriMonthName: yearData.hijriMonth,
+                hijriYear: yearData.hijri.split(" ").pop()
+            }));
           
         } else {
         } 
@@ -96,6 +100,12 @@
       setTimeout(() => {
             checkForUpdates();
         }, 500);
+      setTimeout(() => {
+            checkHijriSettings();
+        }, 500);
+      setInterval(() => {
+            checkHijriSettings();
+      }, 5 * 60 * 1000);
       setTimeout(() => {
           refreshArchiveSilently();
             }, 1000);   
@@ -472,6 +482,86 @@ async function checkHijriSettings() {
         renderDayData(yearData);
 
         console.log("Hijri anchor updated:", firstDayStr, newHijriAnchor);
+
+    } catch (err) {
+        console.error("Hijri settings check failed:", err);
+    }
+}
+
+function getFirstHijriDayFromMoonDate(moonDate) {
+    const parts = moonDate.trim().split(" ");
+    if (parts.length !== 3) return null;
+    const day = parseInt(parts[0], 10);
+    const monthNames = [
+        "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+        "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"
+    ];
+
+    const month = monthNames.indexOf(parts[1]);
+    const year = parseInt(parts[2], 10);
+
+    if (isNaN(day) || month === -1 || isNaN(year)) return null;
+      
+    const firstDay = new Date(year, month, day);
+    firstDay.setDate(firstDay.getDate() + 1);
+
+    return (
+        firstDay.getFullYear() + "-" +
+        String(firstDay.getMonth() + 1).padStart(2, "0") + "-" +
+        String(firstDay.getDate()).padStart(2, "0")
+    );
+}
+
+async function checkHijriSettings() {
+
+    try {
+
+        const response = await fetch(`${API_URL}?action=getSettings`);
+        const settings = await response.json();
+
+        if (!settings || settings.error) return;
+
+        const newMarker = JSON.stringify({
+            moonSighted: settings.moonSighted,
+            hijriMonth: settings.hijriMonth,
+            hijriMonthName: settings.hijriMonthName,
+            hijriYear: settings.hijriYear
+        });
+
+        const oldMarker = localStorage.getItem("hijriSettingsMarker");
+
+        // First check: establish current settings
+        if (!oldMarker) {
+            localStorage.setItem("hijriSettingsMarker", newMarker);
+            console.log("Hijri settings marker initialized.");
+            return;
+        }
+
+        // No change
+        if (newMarker === oldMarker) return;
+
+        console.log("New Hijri settings detected.");
+
+        const firstHijriDay = getFirstHijriDayFromMoonDate(
+            settings.moonSighted
+        );
+
+        if (!firstHijriDay) {
+            console.error("Invalid moon-sighting date:", settings.moonSighted);
+            return;
+        }
+
+        const newHijriAnchor = "1 " + settings.hijriMonthName + " " + settings.hijriYear;
+
+        localStorage.setItem("hijriAnchorGregorian", firstHijriDay);
+
+        localStorage.setItem(  "hijriAnchorString", newHijriAnchor );
+
+        localStorage.setItem( "hijriSettingsMarker", newMarker );
+
+        renderDayData(yearData);
+
+        console.log("Hijri anchor updated:", firstHijriDay, newHijriAnchor  );
 
     } catch (err) {
         console.error("Hijri settings check failed:", err);
