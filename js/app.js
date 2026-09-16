@@ -421,7 +421,63 @@ async function checkForUpdates() {
   }
       
       // Updated to handle standard fetch operations and record offline anchors
-  
+
+async function checkHijriSettings() {
+
+    try {
+        const response = await fetch(`${API_URL}?action=getSettings`);
+        const settings = await response.json();
+
+        if (!settings || settings.error) return;
+
+        const newMarker = JSON.stringify({
+            moonSighted: settings.moonSighted,
+            hijriMonth: settings.hijriMonth,
+            hijriMonthName: settings.hijriMonthName,
+            hijriYear: settings.hijriYear
+        });
+
+        const oldMarker = localStorage.getItem("hijriSettingsMarker");
+
+        // First run: establish the current settings
+        if (!oldMarker) {
+            localStorage.setItem("hijriSettingsMarker", newMarker);
+            console.log("Hijri settings marker initialized.");
+            return;
+        }
+
+        // Nothing changed
+        if (newMarker === oldMarker) {
+            return;
+        }
+
+        console.log("New Hijri settings detected.");
+
+        // Moon-sighted date → first day of new Hijri month is next Gregorian day
+        const firstDay = new Date(settings.moonSighted + "T00:00:00");
+        firstDay.setDate(firstDay.getDate() + 1);
+
+        const firstDayStr =
+            firstDay.getFullYear() + "-" +
+            String(firstDay.getMonth() + 1).padStart(2, "0") + "-" +
+            String(firstDay.getDate()).padStart(2, "0");
+
+        const newHijriAnchor =
+            "1 " + settings.hijriMonthName + " " + settings.hijriYear;
+
+        localStorage.setItem("hijriAnchorGregorian", firstDayStr);
+        localStorage.setItem("hijriAnchorString", newHijriAnchor);
+        localStorage.setItem("hijriSettingsMarker", newMarker);
+
+        renderDayData(yearData);
+
+        console.log("Hijri anchor updated:", firstDayStr, newHijriAnchor);
+
+    } catch (err) {
+        console.error("Hijri settings check failed:", err);
+    }
+}
+
 function adjustTime(timeStr, offsetMinutes){
     if(!timeStr || timeStr==="---") return timeStr;
     // Handle intervals like 06.46-07.00
