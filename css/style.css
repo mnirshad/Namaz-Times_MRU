@@ -181,3 +181,24 @@
 .archiveButtons {    display: flex;    gap: 10px;    padding: 12px 18px 18px;}
 .archiveButtons button {    flex: 1;    border: none;    padding: 10px;    border-radius: 10px;    cursor: pointer;    font-weight: 700;    font-size: .7rem;}
       
+/* =========================================
+   Entire Month Timetable
+   ========================================= */
+
+.monthly-timetable {
+  margin-top: 20px;  background: #fff;  border-radius: 20px;  box-shadow: 4px 4px 10px var(--shadow-dark);  overflow: hidden;
+}
+
+.timetable-header {
+  display: flex;  align-items: center;  justify-content: space-between;  padding: 15px 18px;  color: var(--primary);  font-size: 0.8rem;  font-weight: 900;  text-transform: uppercase;
+  cursor: pointer;
+  user-select: none;
+}
+
+#timetableArrow {
+  display: inline-block;  transition: transform 0.3s ease;
+}
+
+.monthly-timetable.open #timetableArrow {
+  transform: rotate(180deg);
+}
