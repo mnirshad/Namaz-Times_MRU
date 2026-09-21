@@ -721,6 +721,12 @@ h += tripleRow(    "Esha",      "Night Prayer",    eshaStart,   eshaAzaan,   esh
         <span class="tim" style="font-size: 1rem; color: var(--primary);">${d.sightDate || 'N/A'}</span>
       </div>
     </div>
+    <div id="monthlyTimetable" class="monthly-timetable">
+      <div class="timetable-header">
+        <span>Timetables for Entire Month</span>
+        <span id="timetableArrow">▼</span>
+      </div>
+    </div>
   `;
 
   if (d.events && d.events.length > 0) {
