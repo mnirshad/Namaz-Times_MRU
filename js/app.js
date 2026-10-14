@@ -616,7 +616,7 @@ function renderDayData(d = yearData, targetDateObj = new Date()) {
                 const monthText = match[2];
                 const newDay = baseDay + diffDays;
                 calculatedHijri =
-                    (newDay > 0 && newDay <= 29)
+                    (newDay > 0 && newDay <= 30)
                         ? `${newDay} ${monthText}`
                         : "--";
             }
