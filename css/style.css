@@ -200,7 +200,6 @@
 .month-btn.active {  background: var(--primary);  color: white;}
 .month-btn:active {  transform: scale(0.95);}
 
-```css
 /* =========================================
    Monthly Timetable — Table Layout
    ========================================= */
@@ -213,5 +212,3 @@
 #timetableTable thead th {  position: sticky;  top: 0;  z-index: 2;  background: var(--primary);  color: #fff;  font-weight: 800;}
 #timetableTable tbody tr:nth-child(even) {  background: var(--bg);}
 #timetableTable tbody tr:hover {  background: #eaf4ee;}
-
-```
