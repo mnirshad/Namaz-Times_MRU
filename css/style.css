@@ -230,3 +230,22 @@
 
 .monthly-timetable:not(.open) .month-selector,
 .monthly-timetable:not(.open) .timetable-scroll {  display: none;}
+
+/* Prohibited prayer-time columns */
+#timetableTable th:nth-child(6),
+#timetableTable td:nth-child(6),
+#timetableTable th:nth-child(7),
+#timetableTable td:nth-child(7),
+#timetableTable th:nth-child(12),
+#timetableTable td:nth-child(12) {
+  background: #fbe3e3;
+  color: #8b1e1e;
+}
+
+/* Keep prohibited-time headers distinct */
+#timetableTable thead th:nth-child(6),
+#timetableTable thead th:nth-child(7),
+#timetableTable thead th:nth-child(12) {
+  background: #b83232;
+  color: #fff;
+}
