@@ -719,7 +719,7 @@ h += tripleRow(    "Esha",      "Night Prayer",    eshaStart,   eshaAzaan,   esh
       </div>
     </div>
     <div id="monthlyTimetable" class="monthly-timetable">
-      <div class="timetable-header">
+      <div class="timetable-header" onclick="toggleMonthlyTimetable()">
         <span>Timetables for Entire Month</span>
         <span id="timetableArrow">▼</span>
       </div>
