@@ -1092,6 +1092,49 @@ function selectTimetableMonth(monthIndex) {
   renderMonthlyTimetable(monthIndex);
 }
 
+```javascript ```
+function renderMonthlyTimetable(monthIndex) {
+  if (!yearData || !Array.isArray(yearData.months)) return;
+  const monthData = yearData.months.find( month => month.monthIndex === monthIndex  );
+
+  const table = document.getElementById('timetableTable');
+  if (!table) return;
+
+  if (!monthData || !Array.isArray(monthData.days)) {
+    table.innerHTML =
+      '<tbody><tr><td>Monthly data unavailable.</td></tr></tbody>';
+    return;
+  }
+
+  table.innerHTML = '';
+
+  const thead = document.createElement('thead');
+  const tbody = document.createElement('tbody');
+
+  monthData.days.forEach((row, rowIndex) => {
+    const tr = document.createElement('tr');
+
+    row.slice(0, 16).forEach(value => {
+      const cell = document.createElement(
+        rowIndex === 0 ? 'th' : 'td'
+      );
+
+      cell.textContent = value ?? '';
+      tr.appendChild(cell);
+    });
+
+    if (rowIndex === 0) {
+      thead.appendChild(tr);
+    } else {
+      tbody.appendChild(tr);
+    }
+  });
+
+  table.appendChild(thead);
+  table.appendChild(tbody);
+}
+
+/*
 function renderMonthlyTimetable(monthIndex) {
   if (!yearData || !Array.isArray(yearData.months)) return;
   const monthData = yearData.months.find(month => month.monthIndex === monthIndex);
@@ -1114,3 +1157,4 @@ function renderMonthlyTimetable(monthIndex) {
     table.appendChild(tr);
   });
 }
+*/
