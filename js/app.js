@@ -723,6 +723,21 @@ h += tripleRow(    "Esha",      "Night Prayer",    eshaStart,   eshaAzaan,   esh
         <span>Timetables for Entire Month</span>
         <span id="timetableArrow">▼</span>
       </div>
+
+      <div id="monthSelector" class="month-selector">
+        <button type="button" class="month-btn active" onclick="selectTimetableMonth(0)">Jan</button>
+        <button type="button" class="month-btn" onclick="selectTimetableMonth(1)">Feb</button>
+        <button type="button" class="month-btn" onclick="selectTimetableMonth(2)">Mar</button>
+        <button type="button" class="month-btn" onclick="selectTimetableMonth(3)">Apr</button>
+        <button type="button" class="month-btn" onclick="selectTimetableMonth(4)">May</button>
+        <button type="button" class="month-btn" onclick="selectTimetableMonth(5)">Jun</button>
+        <button type="button" class="month-btn" onclick="selectTimetableMonth(6)">Jul</button>
+        <button type="button" class="month-btn" onclick="selectTimetableMonth(7)">Aug</button>
+        <button type="button" class="month-btn" onclick="selectTimetableMonth(8)">Sep</button>
+        <button type="button" class="month-btn" onclick="selectTimetableMonth(9)">Oct</button>
+        <button type="button" class="month-btn" onclick="selectTimetableMonth(10)">Nov</button>
+        <button type="button" class="month-btn" onclick="selectTimetableMonth(11)">Dec</button>
+      </div>
     </div>
   `;
 
