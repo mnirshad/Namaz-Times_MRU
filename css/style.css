@@ -199,3 +199,19 @@
   cursor: pointer;  transition: all 0.2s ease;}
 .month-btn.active {  background: var(--primary);  color: white;}
 .month-btn:active {  transform: scale(0.95);}
+
+```css
+/* =========================================
+   Monthly Timetable — Table Layout
+   ========================================= */
+
+.timetable-scroll {  max-height: 420px;  overflow: auto;  border-top: 1px solid #e0e0e0;}
+#timetableTable {  width: max-content;  min-width: 100%;  border-collapse: separate;  border-spacing: 0;  font-size: 0.72rem;  white-space: nowrap;}
+
+#timetableTable th,
+#timetableTable td {  padding: 9px 12px;  text-align: center;  border-right: 1px solid #e5e5e5;  border-bottom: 1px solid #e5e5e5;}
+#timetableTable thead th {  position: sticky;  top: 0;  z-index: 2;  background: var(--primary);  color: #fff;  font-weight: 800;}
+#timetableTable tbody tr:nth-child(even) {  background: var(--bg);}
+#timetableTable tbody tr:hover {  background: #eaf4ee;}
+
+```
