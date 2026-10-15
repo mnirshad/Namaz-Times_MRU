@@ -1079,3 +1079,10 @@ function toggleMonthlyTimetable() {
   if (!timetable) return;
   timetable.classList.toggle('open');
 }
+
+function selectTimetableMonth(monthIndex) {
+  const buttons = document.querySelectorAll('#monthSelector .month-btn');
+  buttons.forEach((button, index) => {
+    button.classList.toggle('active', index === monthIndex);
+  });
+}
