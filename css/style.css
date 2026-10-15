@@ -249,3 +249,6 @@
   background: #b83232;
   color: #fff;
 }
+
+/* Monthly timetable — raw sea-level values notice */
+.timetable-notice {  padding: 8px 12px 2px;  color: #8b1e1e;  font-size: 0.7rem;  font-weight: 800;  text-align: center;}
