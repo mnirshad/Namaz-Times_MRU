@@ -723,6 +723,10 @@ h += tripleRow(    "Esha",      "Night Prayer",    eshaStart,   eshaAzaan,   esh
         <span>Timetables for Entire Month</span>
         <span id="timetableArrow">▼</span>
       </div>
+      
+      <div class="timetable-notice">
+        Sea-Level Timings : Without Location/Altitude Offsets
+      </div>
 
       <div id="monthSelector" class="month-selector">
         <button type="button" class="month-btn active" onclick="selectTimetableMonth(0)">Jan</button>
