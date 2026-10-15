@@ -552,11 +552,8 @@ async function checkHijriSettings() {
         }
 
         const newHijriAnchor = "1 " + settings.hijriMonthName + " " + settings.hijriYear;
-
         localStorage.setItem("hijriAnchorGregorian", firstHijriDay);
-
         localStorage.setItem(  "hijriAnchorString", newHijriAnchor );
-
         localStorage.setItem( "hijriSettingsMarker", newMarker );
 
         renderDayData(yearData);
@@ -1062,3 +1059,8 @@ function closeHijriArchives() {
     ).style.display = "none";
 }
 
+function toggleMonthlyTimetable() {
+  const timetable = document.getElementById('monthlyTimetable');
+  if (!timetable) return;
+  timetable.classList.toggle('open');
+}
