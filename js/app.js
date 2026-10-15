@@ -1088,6 +1088,29 @@ function toggleMonthlyTimetable() {
 function selectTimetableMonth(monthIndex) {
   const buttons = document.querySelectorAll('#monthSelector .month-btn');
   buttons.forEach((button, index) => {
-    button.classList.toggle('active', index === monthIndex);
+    button.classList.toggle('active', index === monthIndex);  });
+  renderMonthlyTimetable(monthIndex);
+}
+
+function renderMonthlyTimetable(monthIndex) {
+  if (!yearData || !Array.isArray(yearData.months)) return;
+  const monthData = yearData.months.find(month => month.monthIndex === monthIndex);
+  const table = document.getElementById('timetableTable');
+  if (!table) return;
+
+  if (!monthData || !Array.isArray(monthData.days)) {
+    table.innerHTML = '<tbody><tr><td>Monthly data unavailable.</td></tr></tbody>';
+    return;
+  }
+  table.innerHTML = '';      
+  monthData.days.forEach(row => {
+    const tr = document.createElement('tr');
+    row.slice(0, 16).forEach((value, columnIndex) => {
+      const cell = document.createElement(columnIndex === 0 ? 'th' : 'td');
+      cell.textContent = value ?? '';
+      tr.appendChild(cell);
+    });
+
+    table.appendChild(tr);
   });
 }
