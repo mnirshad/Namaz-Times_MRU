@@ -225,3 +225,8 @@
 
 /* Preserve alternate row shading on sticky date cells */
 #timetableTable tbody tr:nth-child(even) td:first-child {  background: var(--bg);}
+
+/* Collapse timetable content by default */
+
+.monthly-timetable:not(.open) .month-selector,
+.monthly-timetable:not(.open) .timetable-scroll {  display: none;}
