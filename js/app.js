@@ -738,6 +738,11 @@ h += tripleRow(    "Esha",      "Night Prayer",    eshaStart,   eshaAzaan,   esh
         <button type="button" class="month-btn" onclick="selectTimetableMonth(10)">Nov</button>
         <button type="button" class="month-btn" onclick="selectTimetableMonth(11)">Dec</button>
       </div>
+      
+      <div class="timetable-scroll">
+        <table id="timetableTable"></table>
+      </div>
+      
     </div>
   `;
 
