@@ -659,7 +659,7 @@ function renderDayData(d = yearData, targetDateObj = new Date()) {
     const asrJamaat = r[10];
     const sunset = adjustTime(r[11], offset);
     const maghribStart = adjustTime(r[12], offset);
-    const maghribAzaan = "---";
+    const maghribAzaan = maghribStart;
     const maghribJamaat = "---";
     const eshaStart = adjustTime(r[13], offset);
     const eshaAzaan = r[14];
@@ -711,7 +711,7 @@ h += tripleRow(    "Esha",      "Night Prayer",    eshaStart,   eshaAzaan,   esh
   h += `
     <div class="prayer-row raised" style="margin-top: 30px; background: #fff; border-left: 6px solid var(--primary); grid-template-columns: 1fr 1fr;">
       <div class="n-stack">
-        <span class="p-sub">Calculated From</span>
+//      <span class="p-sub">Calculated From</span>
         <span class="p-name">Moon Sighted Date</span>
       </div>
       <div class="t-box" style="text-align: right; padding-right: 15px; justify-content: center;">
@@ -725,7 +725,7 @@ h += tripleRow(    "Esha",      "Night Prayer",    eshaStart,   eshaAzaan,   esh
       </div>
       
       <div class="timetable-notice">
-        Sea-Level Timings : Without Location/Altitude Offsets
+        Times @Sea-Level: Without Location/Altitude Offsets
       </div>
 
       <div id="monthSelector" class="month-selector">
