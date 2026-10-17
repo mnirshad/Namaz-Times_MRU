@@ -711,7 +711,6 @@ h += tripleRow(    "Esha",      "Night Prayer",    eshaStart,   eshaAzaan,   esh
   h += `
     <div class="prayer-row raised" style="margin-top: 30px; background: #fff; border-left: 6px solid var(--primary); grid-template-columns: 1fr 1fr;">
       <div class="n-stack">
-//      <span class="p-sub">Calculated From</span>
         <span class="p-name">Moon Sighted Date</span>
       </div>
       <div class="t-box" style="text-align: right; padding-right: 15px; justify-content: center;">
@@ -725,7 +724,7 @@ h += tripleRow(    "Esha",      "Night Prayer",    eshaStart,   eshaAzaan,   esh
       </div>
       
       <div class="timetable-notice">
-        Times @Sea-Level: Without Location/Altitude Offsets
+        Times @Sea-Level: Without Altitude Offsets
       </div>
 
       <div id="monthSelector" class="month-selector">
