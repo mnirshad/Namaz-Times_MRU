@@ -709,14 +709,7 @@ h += tripleRow(    "Maghrib",    "Evening Prayer",    maghribStart,    maghribAz
 h += tripleRow(    "Esha",      "Night Prayer",    eshaStart,   eshaAzaan,   eshaJamaat);
  
   h += `
-    <div class="prayer-row raised" style="margin-top: 30px; background: #fff; border-left: 6px solid var(--primary); grid-template-columns: 1fr 1fr;">
-      <div class="n-stack">
-        <span class="p-name">Moon Sighted Date</span>
-      </div>
-      <div class="t-box" style="text-align: right; padding-right: 15px; justify-content: center;">
-        <span class="tim" style="font-size: 1rem; color: var(--primary);">${d.sightDate || 'N/A'}</span>
-      </div>
-    </div>
+   
     <div id="monthlyTimetable" class="monthly-timetable">
       <div class="timetable-header" onclick="toggleMonthlyTimetable()">
         <span>Timetables for Entire Month</span>
@@ -744,9 +737,18 @@ h += tripleRow(    "Esha",      "Night Prayer",    eshaStart,   eshaAzaan,   esh
       
       <div class="timetable-scroll">
         <table id="timetableTable"></table>
-      </div>
-      
+      </div>    
     </div>
+    
+       <div class="prayer-row raised" style="margin-top: 30px; background: #fff; border-left: 6px solid var(--primary); grid-template-columns: 1fr 1fr;">
+            <div class="n-stack">
+              <span class="p-name">Moon Sighted Date</span>
+            </div>
+            <div class="t-box" style="text-align: right; padding-right: 15px; justify-content: center;">
+              <span class="tim" style="font-size: 1rem; color: var(--primary);">${d.sightDate || 'N/A'}</span>
+            </div>
+         </div>
+    
   `;
 
   if (d.events && d.events.length > 0) {
