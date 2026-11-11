@@ -1,12 +1,6 @@
 
-const CACHE_NAME = `namaz-times-V82.18`;
-/*
-const ASSETS_TO_CACHE = [
-  './',
-  './index.html',
-  './manifest.json'
-];
-*/
+const CACHE_NAME = `namaz-times-V83.00`;
+
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
