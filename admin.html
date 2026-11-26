@@ -63,7 +63,7 @@
         <input type="text" id="moonSighted" placeholder="e.g., Sat 23 May">
     </div>
     <div class="form-group">
-        <label for="nextNewMoon">Next New Moon (C29)</label>
+        <label for="nextNewMoon">Next New Moon (D27)</label>
         <input type="text" id="nextNewMoon" placeholder="e.g. 15 Jun 2026 @hh:mm:ss">
     </div>
 
@@ -115,6 +115,7 @@
             document.getElementById('moonSighted').value = currentData.moonSighted || "";
             document.getElementById('hijriMonth').value = currentData.hijriMonth || "";
             document.getElementById('hijriYear').value = currentData.hijriYear || "";
+            document.getElementById('nextNewMoon').value = currentData.nextNewMoon || "";
 
             status.style.color = "green";
             status.innerText = "✅ Current settings loaded successfully.";
@@ -135,6 +136,7 @@
         const moonSighted = document.getElementById('moonSighted').value;
         const hijriMonth = document.getElementById('hijriMonth').value;
         const hijriYear = document.getElementById('hijriYear').value;
+        const nextNewMoon = document.getElementById('nextNewMoon').value;
         const status = document.getElementById('statusMessage');
 
         if (!password) {
@@ -151,6 +153,7 @@
             moonSighted: moonSighted,
             hijriMonth: parseInt(hijriMonth, 10),
             hijriYear: parseInt(hijriYear, 10)
+            nextNewMoon: nextNewMoon
         };
 
         try {
