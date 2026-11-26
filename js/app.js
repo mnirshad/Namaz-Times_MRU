@@ -748,6 +748,15 @@ h += tripleRow(    "Esha",      "Night Prayer",    eshaStart,   eshaAzaan,   esh
               <span class="tim" style="font-size: 1rem; color: var(--primary);">${d.sightDate || 'N/A'}</span>
             </div>
          </div>
+       <div class="prayer-row raised" style="margin-top: 30px; background: #fff; border-left: 6px solid var(--primary); grid-template-columns: 1fr 1fr;">
+            <div class="n-stack">
+              <span class="p-name">Next New Moon</span>
+            </div>
+            <div class="t-box" style="text-align: right; padding-right: 15px; justify-content: center;">
+              <span class="tim" style="font-size: 1rem; color: var(--primary);">${d.sightDate || 'N/A'}</span>
+            </div>
+         </div>
+         
     
   `;
 
