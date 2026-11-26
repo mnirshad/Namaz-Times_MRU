@@ -444,7 +444,8 @@ async function checkHijriSettings() {
             moonSighted: settings.moonSighted,
             hijriMonth: settings.hijriMonth,
             hijriMonthName: settings.hijriMonthName,
-            hijriYear: settings.hijriYear
+            hijriYear: settings.hijriYear,
+            nextNewMoon: settings.nextNewMoon
         });
 
         const oldMarker = localStorage.getItem("hijriSettingsMarker");
@@ -453,6 +454,7 @@ async function checkHijriSettings() {
         if (!oldMarker) {
             localStorage.setItem("hijriSettingsMarker", newMarker);
             console.log("Hijri settings marker initialized.");
+            renderDayData(yearData);
             return;
         }
 
