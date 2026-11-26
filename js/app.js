@@ -521,11 +521,16 @@ async function checkHijriSettings() {
 
         if (!settings || settings.error) return;
 
+            if (yearData) {
+                yearData.nextNewMoon = settings.nextNewMoon || "";
+            }
+
         const newMarker = JSON.stringify({
             moonSighted: settings.moonSighted,
             hijriMonth: settings.hijriMonth,
             hijriMonthName: settings.hijriMonthName,
-            hijriYear: settings.hijriYear
+            hijriYear: settings.hijriYear,
+            nextNewMoon: settings.nextNewMoon
         });
 
         const oldMarker = localStorage.getItem("hijriSettingsMarker");
@@ -534,6 +539,7 @@ async function checkHijriSettings() {
         if (!oldMarker) {
             localStorage.setItem("hijriSettingsMarker", newMarker);
             console.log("Hijri settings marker initialized.");
+            renderDayData(yearData);
             return;
         }
 
@@ -753,7 +759,7 @@ h += tripleRow(    "Esha",      "Night Prayer",    eshaStart,   eshaAzaan,   esh
               <span class="p-name">Next New Moon</span>
             </div>
             <div class="t-box" style="text-align: right; padding-right: 15px; justify-content: center;">
-              <span class="tim" style="font-size: 1rem; color: var(--primary);">${d.sightDate || 'N/A'}</span>
+              <span class="tim" style="font-size: 1rem; color: var(--primary);">${d.nextNewMoon || 'N/A'}</span> 
             </div>
          </div>
          
